@@ -5,14 +5,14 @@ error[E0277]: the trait bound `usize: Neg` is not satisfied
   |                                        ^^ the trait `Neg` is not implemented for `usize`
   |
   = help: the following other types implement trait `Neg`:
-            &f128
-            &f16
-            &f32
-            &f64
-            &i128
-            &i16
-            &i32
-            &i64
+            isize
+            i8
+            i16
+            i32
+            i64
+            i128
+            f32
+            f64
           and $N others
 
 error[E0600]: cannot apply unary operator `-` to type `usize`
