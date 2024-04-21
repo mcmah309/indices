@@ -10,3 +10,6 @@ repository = "https://github.com/mcmah309/indices"
 
 [dependencies]
 error_set = "^0.3.2"
+
+[dev-dependencies]
+trybuild = "^1.0.91"

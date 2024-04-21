@@ -1,0 +1,27 @@
+error[E0277]: the trait bound `usize: Neg` is not satisfied
+ --> tests/trybuild/try_indices/no_negative_arguments.rs:6:38
+  |
+6 |     let result = try_indices!(slice, -1, 1);
+  |                                      ^^ the trait `Neg` is not implemented for `usize`
+  |
+  = help: the following other types implement trait `Neg`:
+            isize
+            i8
+            i16
+            i32
+            i64
+            i128
+            f32
+            f64
+          and $N others
+
+error[E0600]: cannot apply unary operator `-` to type `usize`
+ --> tests/trybuild/try_indices/no_negative_arguments.rs:6:38
+  |
+6 |     let result = try_indices!(slice, -1, 1);
+  |                                      ^^
+  |                                      |
+  |                                      cannot apply unary operator `-`
+  |                                      help: you may have meant the maximum value of `usize`: `usize::MAX`
+  |
+  = note: unsigned values cannot be negated
