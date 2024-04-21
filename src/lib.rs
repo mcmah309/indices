@@ -1,7 +1,5 @@
 use error_set::error_set;
 
-
-
 error_set! {
     #[derive(PartialEq,Eq)]
     TryIndicesError = {
@@ -20,7 +18,7 @@ error_set! {
 }
 
 
-/// A macro that returns mutable references for the requested indices.
+/// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.
 #[macro_export]
 macro_rules! indices {
@@ -50,7 +48,7 @@ macro_rules! indices {
     }};
 }
 
-/// A macro that returns mutable references for the requested indices.
+/// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.
 #[macro_export]
 macro_rules! try_indices {
@@ -82,8 +80,8 @@ macro_rules! try_indices {
     }};
 }
 
-/// A macro that returns mutable references for the requested indices, assumes the requested indices are already ordered
-/// smallest to largest. Panics the requested indicies are not smallest to largest, or if any index is duplicated or out of bounds.
+/// Returns mutable references for the requested indices, assumes the requested indices are already ordered
+/// smallest to largest. Panics if the requested indicies are not smallest to largest, or if any index is duplicated or out of bounds.
 #[macro_export]
 macro_rules! indices_ordered {
     ($slice:expr, $( $index:expr ),*) => {{
@@ -111,7 +109,7 @@ macro_rules! indices_ordered {
     }};
 }
 
-/// A macro that returns mutable references for the requested indices, assumes the requested indices are already ordered
+/// Returns mutable references for the requested indices, assumes the requested indices are already ordered
 /// smallest to largest. Returns `TryOrderedIndicesError` if the requested indicies are not smallest to largest, or if any index is duplicated or out of bounds.
 #[macro_export]
 macro_rules! try_indices_ordered {
