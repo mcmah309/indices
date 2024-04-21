@@ -1,7 +1,7 @@
 [package]
 name = "indices"
-description = "Macro for extracting mutiple mutable indices from a slice safely"
-version = "0.1.0"
+description = "Zero allocation macros for retrieving multiple mutable indices from a mutable slice"
+version = "0.2.0"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/mcmah309/indices"
