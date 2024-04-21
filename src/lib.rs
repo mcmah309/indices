@@ -1,23 +1,6 @@
-use error_set::error_set;
+mod errors;
 
-error_set! {
-    /// The error type returned from the `try_indices!` macro.
-    #[derive(Copy,Clone,PartialEq,Eq,Hash,PartialOrd,Ord)]
-    TryIndicesError = {
-        /// The requested index is larger than the length of the input slice.
-        IndexOutOfBounds,
-        /// The index has been requested twice.
-        DuplicateIndex
-    };
-    /// The error type returned from the `try_indices_ordered!` macro.
-    #[derive(Copy,Clone,PartialEq,Eq,Hash,PartialOrd,Ord)]
-    TryIndicesOrderedError = {
-        /// The requested index is larger than the length of the input slice.
-        IndexOutOfBounds,
-        /// The input indices are either not sorted or out of bounds.
-        InvalidIndex,
-    };
-}
+pub use errors::*;
 
 /// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.

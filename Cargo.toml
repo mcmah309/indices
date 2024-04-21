@@ -9,7 +9,6 @@ repository = "https://github.com/mcmah309/indices"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-error_set = "^0.3.2"
 
 [dev-dependencies]
 trybuild = "^1.0.91"
