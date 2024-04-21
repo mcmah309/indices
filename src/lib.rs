@@ -1,5 +1,6 @@
 
 
+/// Returns mutable references for the requested indicies. Panics if out of bounds or duplicate requested indices.
 pub fn two<T>(slice: &mut [T], index0: usize, index1: usize) -> (&mut T, &mut T) {
     let mut indices = [index0, index1];
     indices.sort();
