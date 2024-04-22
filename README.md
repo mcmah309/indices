@@ -5,11 +5,15 @@
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-indices-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/indices)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/mcmah309/indices/rust.yml?branch=master&style=for-the-badge" height="20">](https://github.com/mcmah309/indices/actions?query=branch%3Amaster)
 
-Zero allocation macros for retrieving multiple mutable indices from a mutable slice safely. e.g.
+Zero allocation macros and methods for retrieving multiple mutable indices from a mutable slice safely. 
+e.g.
 ```rust
-let (two, four) = indices!(slice, 2, 4);
+let (two, four, three) = indices!(slice, 2, 4, 3);
+let [two, four, three] = indices_array(slice, [2, 4, 3])
 ```
-Another e.g.
+## Macros
+All macros are zero allocation and allow retrieving a variable number of indices at runtime. Prefer macros when the number
+of indices are known at compile time.
 ```rust
 fn main() {
     struct Person {
@@ -42,4 +46,52 @@ indices!
 try_indices!
 indices_ordered!
 try_indices_ordered!
+```
+## Methods
+Methods allow for more dynamic runtime retrieval when the number of indices is unknown at compile time. e.g.
+```rust
+fn main() {
+    struct Node {
+        index: usize,
+        edges: Vec<usize>,
+        message: String,
+    }
+
+    let mut graph = vec![
+        Node { index: 0, edges: vec![1, 2], message: String::new() },
+        Node { index: 1, edges: vec![0, 2], message: String::new() },
+        Node { index: 2, edges: vec![3], message: String::new() },
+        Node { index: 3, edges: vec![1], message: String::new() },
+    ];
+
+    fn traverse_graph(graph: &mut [Node], current: usize, start: usize) -> bool {
+        if current == start { return true; }
+        let edges = graph[current].edges.clone();
+        let mut edge_nodes = indices_vec(graph, &edges);
+        for edge_node in edge_nodes.iter_mut() {
+            edge_node.message.push_str(&format!("At Node `{}` Came from Node `{}`.", edge_node.index, current));
+        }
+        for edge in edges {
+            if traverse_graph(graph, edge, start) {
+                return true;
+            }
+        }
+        return false;
+    }
+    traverse_graph(&mut *graph, 2, 0);
+    let answers = [
+        "At Node `0` Came from Node `1`.",
+        "At Node `1` Came from Node `3`.",
+        "At Node `2` Came from Node `1`.",
+        "At Node `3` Came from Node `2`."
+    ];
+    for (index, node) in graph.iter().enumerate() {
+        assert_eq!(&node.message, answers[index]);
+    }
+}
+```
+The following methods are provided:
+```rust
+indices_array
+indices_vec // will allocate
 ```

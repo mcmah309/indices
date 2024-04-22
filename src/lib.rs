@@ -655,24 +655,28 @@ mod example_tests {
         ];
 
         fn traverse_graph(graph: &mut [Node], current: usize, start: usize) -> bool {
-                if current == start { return true; }
-                let edges = graph[current].edges.clone();
-                let mut edge_nodes = indices_vec(graph, &edges);
-                for edge_node in edge_nodes.iter_mut() {
-                    edge_node.message.push_str(&format!("At node `{}` Came from Node `{}`.", edge_node.index, current));
-                }
-                for edge in edges {
-                    if traverse_graph(graph, edge, start) {
-                        return true;
-                    }
-                }
-                return false;
+            if current == start { return true; }
+            let edges = graph[current].edges.clone();
+            let mut edge_nodes = indices_vec(graph, &edges);
+            for edge_node in edge_nodes.iter_mut() {
+                edge_node.message.push_str(&format!("At Node `{}` Came from Node `{}`.", edge_node.index, current));
             }
-
+            for edge in edges {
+                if traverse_graph(graph, edge, start) {
+                    return true;
+                }
+            }
+            return false;
+        }
         traverse_graph(&mut *graph, 2, 0);
-
-        for node in graph {
-            println!("{}",node.message);
+        let answers = [
+            "At Node `0` Came from Node `1`.",
+            "At Node `1` Came from Node `3`.",
+            "At Node `2` Came from Node `1`.",
+            "At Node `3` Came from Node `2`."
+        ];
+        for (index, node) in graph.iter().enumerate() {
+            assert_eq!(&node.message, answers[index]);
         }
     }
 }
