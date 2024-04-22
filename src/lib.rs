@@ -2,53 +2,6 @@ mod errors;
 
 pub use errors::*;
 
-const fn create_array<const N: usize>() -> [usize; N] {
-    let mut arr: [usize; N] = [0; N];
-    let mut i = 0;
-    while i < N {
-        arr[i] = i;
-        i += 1;
-    }
-    arr
-}
-
-#[inline(always)]
-fn create_vec(size: usize) -> Vec<usize> {
-    let mut vector = Vec::with_capacity(size);
-    let mut i = 0;
-    while i < size {
-        vector.push(i);
-        i += 1;
-    }
-    vector
-}
-
-#[inline(always)]
-fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
-    for i in 1..s.len() {
-        let mut j = i;
-        while j > 0 && s[j - 1] > s[j] {
-            s.swap(j - 1, j);
-            j -= 1;
-        }
-    }
-}
-
-#[inline(always)]
-fn tracked_insertion_sort<T: PartialOrd, U>(s: &mut [T], follower: &mut [U]) {
-    debug_assert!(s.len() == follower.len());
-    for i in 1..s.len() {
-        let mut j = i;
-        while j > 0 && s[j - 1] > s[j] {
-            s.swap(j - 1, j);
-            follower.swap(j - 1, j);
-            j -= 1;
-        }
-    }
-}
-
-//************************************************************************//
-
 pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &mut [usize]) -> Vec<&'a mut T> {
     let mut follower = create_vec(indices.len());
     tracked_insertion_sort(indices, &mut follower);
@@ -253,6 +206,53 @@ macro_rules! try_indices_ordered {
         ))
     })()
     }};
+}
+
+//************************************************************************//
+
+const fn create_array<const N: usize>() -> [usize; N] {
+    let mut arr: [usize; N] = [0; N];
+    let mut i = 0;
+    while i < N {
+        arr[i] = i;
+        i += 1;
+    }
+    arr
+}
+
+#[inline(always)]
+fn create_vec(size: usize) -> Vec<usize> {
+    let mut vector = Vec::with_capacity(size);
+    let mut i = 0;
+    while i < size {
+        vector.push(i);
+        i += 1;
+    }
+    vector
+}
+
+#[inline(always)]
+pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
+    for i in 1..s.len() {
+        let mut j = i;
+        while j > 0 && s[j - 1] > s[j] {
+            s.swap(j - 1, j);
+            j -= 1;
+        }
+    }
+}
+
+#[inline(always)]
+fn tracked_insertion_sort<T: PartialOrd, U>(s: &mut [T], follower: &mut [U]) {
+    debug_assert!(s.len() == follower.len());
+    for i in 1..s.len() {
+        let mut j = i;
+        while j > 0 && s[j - 1] > s[j] {
+            s.swap(j - 1, j);
+            follower.swap(j - 1, j);
+            j -= 1;
+        }
+    }
 }
 
 //************************************************************************//
