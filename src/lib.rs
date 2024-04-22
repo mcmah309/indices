@@ -2,9 +2,12 @@ mod errors;
 
 pub use errors::*;
 
-pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &mut [usize]) -> Vec<&'a mut T> {
+/// Returns mutable references for the requested indices.
+/// Panics if any index is out of bounds or duplicated.
+pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mut T> {
+    let mut indices: Vec<usize> = indices.to_vec();
     let mut follower = create_vec(indices.len());
-    tracked_insertion_sort(indices, &mut follower);
+    tracked_insertion_sort(&mut indices, &mut follower);
     let size = indices.len();
     let indices_len_minus_one = size - 1;
     let slice_len_minus_one = slice.len() - 1;
@@ -40,12 +43,15 @@ pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &mut [usize]) -> Vec<&'a 
     }
 }
 
+/// Returns mutable references for the requested indices.
+/// Panics if any index is out of bounds or duplicated.
 pub fn indices_array<'a, T, const N: usize>(
     slice: &'a mut [T],
-    indices: &mut [usize; N],
+    indices: &[usize; N],
 ) -> [&'a mut T; N] {
+    let mut indices = indices.clone();
     let mut follower: [usize; N] = create_array();
-    tracked_insertion_sort(indices, &mut follower);
+    tracked_insertion_sort(&mut indices, &mut follower);
     let indices_len_minus_one = N - 1;
     let slice_len_minus_one = slice.len() - 1;
     for i in 0..indices_len_minus_one {
@@ -590,6 +596,8 @@ mod tests {
 
 #[cfg(test)]
 mod example_tests {
+    use crate::indices_vec;
+
     #[test]
     fn example1() {
         struct Person {
@@ -631,38 +639,36 @@ mod example_tests {
         assert_eq!(data[3].last, "Jones");
     }
 
-    // #[test]
-    // fn graph_example(){
-    //         struct Node {
-    //             index: usize,
-    //             name: String,
-    //             edges: Vec<usize>,
-    //         }
+    #[test]
+    fn graph_example(){
+            struct Node {
+                index: usize,
+                edges: Vec<usize>,
+            }
 
-    //         let mut graph = vec![
-    //             Node { index: 0, name: "Node 0".to_string(), edges: vec![1, 3] },
-    //             Node { index: 1, name: "Node 1".to_string(), edges: vec![0, 2] },
-    //             Node { index: 2, name: "Node 2".to_string(), edges: vec![1] },
-    //             Node { index: 3, name: "Node 3".to_string(), edges: vec![2] },
-    //         ];
+            let mut graph = vec![
+                Node { index: 0, edges: vec![1, 2] },
+                Node { index: 1, edges: vec![0, 2] },
+                Node { index: 2, edges: vec![3] },
+                Node { index: 3, edges: vec![1] },
+            ];
 
-    //         fn modify_graph(graph: &mut [Node], node_index: usize) {
-    //             if let Some(node) = graph.get_mut(node_index) {
-    //                 for &edge_index in &node.edges {
-    //                     if let Some(adjacent_node) = graph.get_mut(edge_index) {
-    //                         println!("Modifying edge from Node {} to Node {}.", node_index, edge_index);
-    //                         // Example modification: rename nodes to indicate a processed connection
-    //                         adjacent_node.name = format!("{} (connected from {})", adjacent_node.name, node_index);
-    //                     }
-    //                 }
-    //             }
-    //         }
+            fn traverse_graph(graph: &mut [Node], current: usize, start: usize) -> bool {
+                    if current == start { return true; }
+                    let edges = &mut *graph[current].edges.clone();
+                    let edge_nodes = indices_vec(graph, edges);
+                    for edge_node in edge_nodes.iter() {
+                        println!("Could mutate Node Edge `{}` of Node `{}`.", edge_node.index, current);
+                    }
+                    for edge in edges {
+                        if traverse_graph(graph, *edge, start) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
 
-    //         // Modify graph starting from node 0
-    //         modify_graph(&mut graph, 0);
-
-    //         for node in &graph {
-    //             println!("Node {}: {}", node.index, node.name);
-    //         }
-    // }
+            // Modify graph starting from node 0
+            traverse_graph(&mut *graph, 2, 0);
+    }
 }
