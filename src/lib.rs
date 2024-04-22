@@ -35,36 +35,42 @@ pub fn indices_slice<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mu
     }
 }
 
-// pub fn indices_slices<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &[usize]) -> Vec<&'a mut T> {
-//     let mut indices: Vec<usize> = [indices1, indices2].concat();
-//     insertion_sort(&mut indices, &mut follower);
-//     let size = indices.len();
-//     let indices_len_minus_one = size - 1;
-//     let slice_len_minus_one = slice.len() - 1;
-//     for i in 0..indices_len_minus_one {
-//         if indices[i] == indices[i + 1] {
-//             panic!(
-//                 "Duplicate indices are not allowed. Index `{}` was requested twice.",
-//                 indices[i]
-//             );
-//         }
-//     }
-//     if indices[indices_len_minus_one] > slice_len_minus_one {
-//         panic!(
-//             "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
-//             indices[indices_len_minus_one],
-//             slice_len_minus_one + 1
-//         );
-//     }
-//     let mut vector: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); size];
-//     let ptr = slice.as_mut_ptr();
-//     unsafe {
-//         for (i, index) in follower.iter().enumerate() {
-//             vector[*index].write(ptr.add(indices[i]));
-//         }
-//         std::mem::transmute::<_, Vec<&'a mut T>>(vector)
-//     }
-// }
+pub fn indices_slices<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &[usize]) -> (Vec<&'a mut T>,Vec<&'a mut T>) {
+    let mut check: Vec<usize> = [indices1, indices2].concat();
+    insertion_sort(&mut check);
+    let size = check.len();
+    let indices_len_minus_one = size - 1;
+    let slice_len_minus_one = slice.len() - 1;
+    for i in 0..indices_len_minus_one {
+        if check[i] == check[i + 1] {
+            panic!(
+                "Duplicate indices are not allowed. Index `{}` was requested twice.",
+                check[i]
+            );
+        }
+    }
+    if check[indices_len_minus_one] > slice_len_minus_one {
+        panic!(
+            "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
+            check[indices_len_minus_one],
+            slice_len_minus_one + 1
+        );
+    }
+    let mut vector1: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); indices1.len()];
+    let mut vector2: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); indices2.len()];
+    let ptr = slice.as_mut_ptr();
+    unsafe {
+        for (i, index) in indices1.iter().enumerate() {
+            vector1[i].write(ptr.add(*index));
+        }
+        let result1 = std::mem::transmute::<_, Vec<&'a mut T>>(vector1);
+        for (i, index) in indices2.iter().enumerate() {
+            vector2[i].write(ptr.add(*index));
+        }
+        let result2 = std::mem::transmute::<_, Vec<&'a mut T>>(vector2);
+        (result1, result2)
+    }
+}
 
 /// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.
@@ -297,7 +303,7 @@ pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indices_array, indices_slice, TryIndicesError, TryIndicesOrderedError};
+    use crate::{indices_array, indices_slice, indices_slices, TryIndicesError, TryIndicesOrderedError};
 
     #[test]
     fn indices_vec_works() {
@@ -624,6 +630,62 @@ mod tests {
         let result = try_indices_ordered!(slice, 3, 5);
         assert_eq!(result, Err(TryIndicesOrderedError::IndexOutOfBounds));
     }
+
+    //************************************************************************//
+
+    #[test]
+    fn indices_slices_works() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (mut one, mut two) = indices_slices(slice, &[1, 3], &[4, 2]);
+        assert_eq!(one, [&mut 4, &mut 2]);
+        assert_eq!(two, [&mut 1, &mut 3]);
+        *one[0] = 10;
+        *two[0] = 20;
+        assert_eq!(data, [5, 10, 3, 2, 20]);
+    }
+
+    // #[test]
+    // fn indices_vec_out_of_order() {
+    //     let mut data = [5, 4, 3, 2, 1];
+    //     let slice = data.as_mut_slice();
+    //     let [one, two] = indices_slice(slice, &mut [3, 1]).try_into().unwrap();
+    //     assert_eq!(one, &mut 2);
+    //     assert_eq!(two, &mut 4);
+    //     *one = 10;
+    //     *two = 20;
+    //     assert_eq!(data, [5, 20, 3, 10, 1]);
+    // }
+
+    // #[test]
+    // fn indices_vec_more_than_two_indices() {
+    //     let mut data = [5, 4, 3, 2, 1];
+    //     let slice = data.as_mut_slice();
+    //     let [one, two, three] = indices_slice(slice, &mut [3, 1, 2]).try_into().unwrap();
+    //     assert_eq!(one, &mut 2);
+    //     assert_eq!(two, &mut 4);
+    //     assert_eq!(three, &mut 3);
+    //     *one = 10;
+    //     *two = 20;
+    //     *three = 30;
+    //     assert_eq!(data, [5, 20, 30, 10, 1]);
+    // }
+
+    // #[should_panic]
+    // #[test]
+    // fn indices_vec_duplicate_indices() {
+    //     let mut data = [5, 4, 3, 2, 1];
+    //     let slice = data.as_mut_slice();
+    //     let [_one, _two] = indices_slice(slice, &mut [3, 3]).try_into().unwrap();
+    // }
+
+    // #[should_panic]
+    // #[test]
+    // fn indices_vec_out_of_bounds() {
+    //     let mut data = [5, 4, 3, 2, 1];
+    //     let slice = data.as_mut_slice();
+    //     let [_one, _two] = indices_slice(slice, &mut [3, 5]).try_into().unwrap();
+    // }
 }
 
 #[cfg(test)]
