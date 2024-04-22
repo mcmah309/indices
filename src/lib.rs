@@ -12,13 +12,6 @@ pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mut 
     let indices_len_minus_one = size - 1;
     let slice_len_minus_one = slice.len() - 1;
     for i in 0..indices_len_minus_one {
-        if indices[i] > slice_len_minus_one {
-            panic!(
-                "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
-                indices[i],
-                slice_len_minus_one + 1
-            );
-        }
         if indices[i] == indices[i + 1] {
             panic!(
                 "Duplicate indices are not allowed. Index `{}` was requested twice.",
@@ -55,13 +48,6 @@ pub fn indices_array<'a, T, const N: usize>(
     let indices_len_minus_one = N - 1;
     let slice_len_minus_one = slice.len() - 1;
     for i in 0..indices_len_minus_one {
-        if indices[i] > slice_len_minus_one {
-            panic!(
-                "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
-                indices[i],
-                slice_len_minus_one + 1
-            );
-        }
         if indices[i] == indices[i + 1] {
             panic!(
                 "Duplicate indices are not allowed. Index `{}` was requested twice.",
@@ -76,6 +62,7 @@ pub fn indices_array<'a, T, const N: usize>(
             slice_len_minus_one + 1
         );
     }
+
     let ptr = slice.as_mut_ptr();
     unsafe {
         let mut array: [std::mem::MaybeUninit<*mut T>; N] =
@@ -102,9 +89,6 @@ macro_rules! indices {
         let indices_len_minus_one = indices.len() - 1;
         let slice_len_minus_one = slice.len() - 1;
         for i in 0..indices_len_minus_one {
-            if indices[i] > slice_len_minus_one {
-                panic!("Index out of bounds. Requested index was `{}` while slice length was `{}`.", indices[i], slice_len_minus_one + 1)
-            }
             if indices[i] == indices[i + 1] {
                 panic!("Duplicate indices are not allowed. Index `{}` was requested twice.", indices[i])
             }
@@ -133,9 +117,6 @@ macro_rules! try_indices {
         let indices_len_minus_one = indices.len() - 1;
         let slice_len_minus_one = slice.len() - 1;
         for i in 0..indices_len_minus_one {
-            if indices[i] > slice_len_minus_one {
-                return Err($crate::TryIndicesError::IndexOutOfBounds);
-            }
             if indices[i] == indices[i + 1] {
                 return Err($crate::TryIndicesError::DuplicateIndex);
             }
