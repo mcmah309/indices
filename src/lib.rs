@@ -12,15 +12,16 @@ const fn create_array<const N: usize>() -> [usize; N] {
     arr
 }
 
-// fn create_vec(size: usize) -> Vec<usize> {
-//     let mut vector = Vec::with_capacity(size);
-//     let mut i = 0;
-//     while i < size {
-//         vector.push(i);
-//         i += 1;
-//     }
-//     vector
-// }
+#[inline(always)]
+fn create_vec(size: usize) -> Vec<usize> {
+    let mut vector = Vec::with_capacity(size);
+    let mut i = 0;
+    while i < size {
+        vector.push(i);
+        i += 1;
+    }
+    vector
+}
 
 #[inline(always)]
 fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
@@ -48,30 +49,43 @@ fn tracked_insertion_sort<T: PartialOrd, U>(s: &mut [T], follower: &mut [U]) {
 
 //************************************************************************//
 
-// pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &mut [usize]) -> Vec<&'a mut T> {
-//     let mut follower = create_vec(indices.len());
-//     tracked_insertion_sort(indices, &mut follower);
-//     let indices_len_minus_one = indices.len() - 1;
-//     let slice_len_minus_one = slice.len() - 1;
-//     check_panic(&indices, slice_len_minus_one, indices_len_minus_one);
-//     let size = indices.len();
-//     let mut vector: Vec<std::mem::MaybeUninit<&'a mut T>> = Vec::with_capacity(size);
-//     for _ in 0..size {
-//         vector.push(std::mem::MaybeUninit::uninit());
-//     }
-//     let ptr = slice.as_mut_ptr();
-//     unsafe {
-//         for (i, index) in follower.iter().enumerate() {
-//             vector[*index] = std::mem::MaybeUninit::new(&mut *ptr.add(i));
-//         }
-//         let initialized_vec: Vec<&'a mut T> = {
-//             // Transmute to the initialized type
-//             let ptr = vector.as_mut_ptr() as *mut &'a mut T;
-//             Vec::from_raw_parts(ptr, size, size)
-//         };
-//         initialized_vec
-//     }
-// }
+pub fn indices_vec<'a, T>(slice: &'a mut [T], indices: &mut [usize]) -> Vec<&'a mut T> {
+    let mut follower = create_vec(indices.len());
+    tracked_insertion_sort(indices, &mut follower);
+    let size = indices.len();
+    let indices_len_minus_one = size - 1;
+    let slice_len_minus_one = slice.len() - 1;
+    for i in 0..indices_len_minus_one {
+        if indices[i] > slice_len_minus_one {
+            panic!(
+                "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
+                indices[i],
+                slice_len_minus_one + 1
+            );
+        }
+        if indices[i] == indices[i + 1] {
+            panic!(
+                "Duplicate indices are not allowed. Index `{}` was requested twice.",
+                indices[i]
+            );
+        }
+    }
+    if indices[indices_len_minus_one] > slice_len_minus_one {
+        panic!(
+            "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
+            indices[indices_len_minus_one],
+            slice_len_minus_one + 1
+        );
+    }
+    let mut vector: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); size];
+    let ptr = slice.as_mut_ptr();
+    unsafe {
+        for (i, index) in follower.iter().enumerate() {
+            vector[*index].write(ptr.add(indices[i]));
+        }
+        std::mem::transmute::<_, Vec<&'a mut T>>(vector)
+    }
+}
 
 pub fn indices_array<'a, T, const N: usize>(
     slice: &'a mut [T],
@@ -108,9 +122,10 @@ pub fn indices_array<'a, T, const N: usize>(
         let mut array: [std::mem::MaybeUninit<*mut T>; N] =
             std::mem::MaybeUninit::uninit().assume_init();
         for (i, index) in follower.iter().enumerate() {
-            array[*index] = std::mem::MaybeUninit::new(ptr.add(indices[i]));
+            array[*index].write(ptr.add(indices[i]));
         }
-        std::mem::transmute_copy::<_, [&'a mut T; N]>(&array)
+        assert!(std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>() == std::mem::size_of::<[&'a mut T; N]>());
+        std::mem::transmute_copy::<[std::mem::MaybeUninit<*mut T>; N], [&'a mut T; N]>(&array)
     }
 }
 
@@ -244,61 +259,61 @@ macro_rules! try_indices_ordered {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indices_array, TryIndicesError, TryIndicesOrderedError};
+    use crate::{indices_array, indices_vec, TryIndicesError, TryIndicesOrderedError};
 
-    // #[test]
-    // fn indices_vec_works() {
-    //     let mut data = [5, 4, 3, 2, 1];
-    //     let slice = data.as_mut_slice();
-    //     let [one, two] = indices_vec(slice, &mut [1, 3]).try_into().unwrap();
-    //     assert_eq!(one, &mut 4);
-    //     assert_eq!(two, &mut 2);
-    //     *one = 10;
-    //     *two = 20;
-    //     assert_eq!(data, [5, 10, 3, 20, 1]);
-    // }
+    #[test]
+    fn indices_vec_works() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let [one, two] = indices_vec(slice, &mut [1, 3]).try_into().unwrap();
+        assert_eq!(one, &mut 4);
+        assert_eq!(two, &mut 2);
+        *one = 10;
+        *two = 20;
+        assert_eq!(data, [5, 10, 3, 20, 1]);
+    }
 
-    // #[test]
-    // fn indices_vec_out_of_order() {
-    //     let mut data = [5, 4, 3, 2, 1];
-    //     let slice = data.as_mut_slice();
-    //     let [one, two] = indices_vec(slice, &mut [3, 1]).try_into().unwrap();
-    //     assert_eq!(one, &mut 2);
-    //     assert_eq!(two, &mut 4);
-    //     *one = 10;
-    //     *two = 20;
-    //     assert_eq!(data, [5, 20, 3, 10, 1]);
-    // }
+    #[test]
+    fn indices_vec_out_of_order() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let [one, two] = indices_vec(slice, &mut [3, 1]).try_into().unwrap();
+        assert_eq!(one, &mut 2);
+        assert_eq!(two, &mut 4);
+        *one = 10;
+        *two = 20;
+        assert_eq!(data, [5, 20, 3, 10, 1]);
+    }
 
-    // #[test]
-    // fn indices_vec_more_than_two_indices() {
-    //     let mut data = [5, 4, 3, 2, 1];
-    //     let slice = data.as_mut_slice();
-    //     let [one, two, three] = indices_vec(slice, &mut [3, 1, 2]).try_into().unwrap();
-    //     assert_eq!(one, &mut 2);
-    //     assert_eq!(two, &mut 4);
-    //     assert_eq!(three, &mut 3);
-    //     *one = 10;
-    //     *two = 20;
-    //     *three = 30;
-    //     assert_eq!(data, [5, 20, 30, 10, 1]);
-    // }
+    #[test]
+    fn indices_vec_more_than_two_indices() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let [one, two, three] = indices_vec(slice, &mut [3, 1, 2]).try_into().unwrap();
+        assert_eq!(one, &mut 2);
+        assert_eq!(two, &mut 4);
+        assert_eq!(three, &mut 3);
+        *one = 10;
+        *two = 20;
+        *three = 30;
+        assert_eq!(data, [5, 20, 30, 10, 1]);
+    }
 
-    // #[should_panic]
-    // #[test]
-    // fn indices_vec_duplicate_indices() {
-    //     let mut data = [5, 4, 3, 2, 1];
-    //     let slice = data.as_mut_slice();
-    //     let [_one, _two] = indices_vec(slice, &mut [3, 3]).try_into().unwrap();
-    // }
+    #[should_panic]
+    #[test]
+    fn indices_vec_duplicate_indices() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let [_one, _two] = indices_vec(slice, &mut [3, 3]).try_into().unwrap();
+    }
 
-    // #[should_panic]
-    // #[test]
-    // fn indices_vec_out_of_bounds() {
-    //     let mut data = [5, 4, 3, 2, 1];
-    //     let slice = data.as_mut_slice();
-    //     let [_one, _two] = indices_vec(slice, &mut [3, 5]).try_into().unwrap();
-    // }
+    #[should_panic]
+    #[test]
+    fn indices_vec_out_of_bounds() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let [_one, _two] = indices_vec(slice, &mut [3, 5]).try_into().unwrap();
+    }
 
     //************************************************************************//
 
