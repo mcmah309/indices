@@ -105,10 +105,10 @@ pub fn indices_array<'a, T, const N: usize>(
     }
     let ptr = slice.as_mut_ptr();
     unsafe {
-        let mut array: [std::mem::MaybeUninit<&'a mut T>; N] =
+        let mut array: [std::mem::MaybeUninit<*mut T>; N] =
             std::mem::MaybeUninit::uninit().assume_init();
         for (i, index) in follower.iter().enumerate() {
-            array[*index] = std::mem::MaybeUninit::new(&mut *ptr.add(indices[i]));
+            array[*index] = std::mem::MaybeUninit::new(ptr.add(indices[i]));
         }
         std::mem::transmute_copy::<_, [&'a mut T; N]>(&array)
     }
