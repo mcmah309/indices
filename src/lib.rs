@@ -641,34 +641,38 @@ mod example_tests {
 
     #[test]
     fn graph_example(){
-            struct Node {
-                index: usize,
-                edges: Vec<usize>,
+        struct Node {
+            index: usize,
+            edges: Vec<usize>,
+            message: String,
+        }
+
+        let mut graph = vec![
+            Node { index: 0, edges: vec![1, 2], message: String::new() },
+            Node { index: 1, edges: vec![0, 2], message: String::new() },
+            Node { index: 2, edges: vec![3], message: String::new() },
+            Node { index: 3, edges: vec![1], message: String::new() },
+        ];
+
+        fn traverse_graph(graph: &mut [Node], current: usize, start: usize) -> bool {
+                if current == start { return true; }
+                let edges = graph[current].edges.clone();
+                let mut edge_nodes = indices_vec(graph, &edges);
+                for edge_node in edge_nodes.iter_mut() {
+                    edge_node.message.push_str(&format!("At node `{}` Came from Node `{}`.", edge_node.index, current));
+                }
+                for edge in edges {
+                    if traverse_graph(graph, edge, start) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
-            let mut graph = vec![
-                Node { index: 0, edges: vec![1, 2] },
-                Node { index: 1, edges: vec![0, 2] },
-                Node { index: 2, edges: vec![3] },
-                Node { index: 3, edges: vec![1] },
-            ];
+        traverse_graph(&mut *graph, 2, 0);
 
-            fn traverse_graph(graph: &mut [Node], current: usize, start: usize) -> bool {
-                    if current == start { return true; }
-                    let edges = &mut *graph[current].edges.clone();
-                    let edge_nodes = indices_vec(graph, edges);
-                    for edge_node in edge_nodes.iter() {
-                        println!("Could mutate Node Edge `{}` of Node `{}`.", edge_node.index, current);
-                    }
-                    for edge in edges {
-                        if traverse_graph(graph, *edge, start) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-
-            // Modify graph starting from node 0
-            traverse_graph(&mut *graph, 2, 0);
+        for node in graph {
+            println!("{}",node.message);
+        }
     }
 }
