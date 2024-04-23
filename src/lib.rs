@@ -1,3 +1,6 @@
+#![feature(macro_metavar_expr)]
+#![feature(concat_idents)]
+
 mod errors;
 
 pub use errors::*;
@@ -35,7 +38,7 @@ pub fn indices_slice<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mu
     }
 }
 
-pub fn indices_slices<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &[usize]) -> (Vec<&'a mut T>,Vec<&'a mut T>) {
+pub fn indices_slice2<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &[usize]) -> (Vec<&'a mut T>,Vec<&'a mut T>) {
     let mut check: Vec<usize> = [indices1, indices2].concat();
     insertion_sort(&mut check);
     let size = check.len();
@@ -71,6 +74,8 @@ pub fn indices_slices<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &
         (result1, result2)
     }
 }
+
+
 
 /// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.
@@ -111,6 +116,63 @@ pub fn indices_array<'a, T, const N: usize>(
 }
 
 //************************************************************************//
+
+#[macro_export]
+macro_rules! concat {
+    () => {};
+    ($ident:ident $num:tt) => {
+        $ident$num
+    };
+}
+
+/// Returns mutable references for the requested indices.
+/// Panics if any index is out of bounds or duplicated.
+#[macro_export]
+macro_rules! indices_slices2 {
+    ($out_type:path, $slice:expr, $( $indices:expr ),*) => {{
+    let mut check: Vec<usize> = [$($indices),*].concat();
+    //let mut check: Vec<usize> = [$($indices.iter().flatten()),*].collect();
+    $crate::insertion_sort(&mut check);
+    let size = check.len();
+    let indices_len_minus_one = size - 1;
+    let slice_len_minus_one = slice.len() - 1;
+    for i in 0..indices_len_minus_one {
+        if check[i] == check[i + 1] {
+            panic!(
+                "Duplicate indices are not allowed. Index `{}` was requested twice.",
+                check[i]
+            );
+        }
+    }
+    if check[indices_len_minus_one] > slice_len_minus_one {
+        panic!(
+            "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
+            check[indices_len_minus_one],
+            slice_len_minus_one + 1
+        );
+    }
+    $(
+        let mut concat_idents!(vector,${index()}) : Vec<std::mem::MaybeUninit<*mut $out_type>> = vec![std::mem::MaybeUninit::uninit(); $indices.len()];
+    )*
+    let ptr = slice.as_mut_ptr();
+    unsafe {
+        $(
+            for (i, index) in $indices.iter().enumerate() {
+                concat_idents!(vector,${index()})[i].write(ptr.add(*index));
+            }
+            let concat_idents!(result,${index()}) = std::mem::transmute::<_, Vec<&'a mut $out_type>>(concat_idents!(vector,${index()}));
+        )*
+        //$( concat_idents!(result${index()}) ,)*
+        ($( result!($indices,${index()}), )*)
+    }
+}};
+}
+
+macro_rules! result {
+    ($indices:expr, $i:literal) => {
+        concat_idents!(result,$i)
+    };
+}
 
 /// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.
@@ -303,7 +365,7 @@ pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indices_array, indices_slice, indices_slices, TryIndicesError, TryIndicesOrderedError};
+    use crate::{indices_array, indices_slice, concat, indices_slices, TryIndicesError, TryIndicesOrderedError};
 
     #[test]
     fn indices_vec_works() {
@@ -638,6 +700,18 @@ mod tests {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
         let (mut one, mut two) = indices_slices(slice, &[1, 3], &[4, 2]);
+        assert_eq!(one, [&mut 4, &mut 2]);
+        assert_eq!(two, [&mut 1, &mut 3]);
+        *one[0] = 10;
+        *two[0] = 20;
+        assert_eq!(data, [5, 10, 3, 2, 20]);
+    }
+
+    #[test]
+    fn indices2_slices_works() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (mut one, mut two) = indices_slices2!(i32, slice, [1, 3], [4, 2]);
         assert_eq!(one, [&mut 4, &mut 2]);
         assert_eq!(two, [&mut 1, &mut 3]);
         *one[0] = 10;
