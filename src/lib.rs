@@ -107,7 +107,7 @@ pub fn indices_slices<'a, T, const N: usize>(
 
 //************************************************************************//
 
-/// Returns mutable references for the requested indices.
+/// Returns mutable references for the requested indices in the provided array.
 /// Panics if any index is out of bounds or duplicate indices.
 #[inline(always)]
 pub fn indices_array<'a, T, const N: usize>(
@@ -193,7 +193,7 @@ macro_rules! indices {
 }
 
 /// Returns mutable references for the requested indices.
-/// Panics if any index is out of bounds or duplicated.
+/// Returns `TryIndicesError` if any index is out of bounds or duplicated.
 #[macro_export]
 macro_rules! try_indices {
     ($slice:expr, $( $index:expr ),+) => {{
