@@ -1,0 +1,11 @@
+error: unexpected end of macro invocation
+ --> tests/trybuild/indices/needs_to_provide_indices.rs:6:32
+  |
+6 |     let result = indices!(slice);
+  |                                ^ missing tokens in macro arguments
+  |
+note: while trying to match `,`
+ --> src/lib.rs
+  |
+  |     ($slice:expr, $( $index:expr ),+) => {{
+  |                 ^
