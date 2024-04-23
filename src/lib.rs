@@ -26,7 +26,8 @@ pub fn indices_slice<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mu
             slice_len_minus_one + 1
         );
     }
-    let mut vector: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); size];
+    let mut vector: Vec<std::mem::MaybeUninit<*mut T>> =
+        vec![std::mem::MaybeUninit::uninit(); size];
     let ptr = slice.as_mut_ptr();
     unsafe {
         for (i, index) in indices.iter().enumerate() {
@@ -39,8 +40,11 @@ pub fn indices_slice<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mu
 /// Returns mutable references for the requested indices in the provided slices.
 /// Panics if any index is out of bounds or duplicate indices.
 #[inline(always)]
-pub fn indices_slice2<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &[usize]) -> (Vec<&'a mut T>,Vec<&'a mut T>) {
-    let mut check: Vec<usize> = [indices1, indices2].concat();
+pub fn indices_slices<'a, T, const N: usize>(
+    slice: &'a mut [T],
+    indices: [&[usize]; N],
+) -> [Vec<&'a mut T>; N] {
+    let mut check: Vec<usize> = indices.concat();
     insertion_sort(&mut check);
     let size = check.len();
     let indices_len_minus_one = size - 1;
@@ -60,19 +64,22 @@ pub fn indices_slice2<'a, T>(slice: &'a mut [T], indices1: &[usize], indices2: &
             slice_len_minus_one + 1
         );
     }
-    let mut vector1: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); indices1.len()];
-    let mut vector2: Vec<std::mem::MaybeUninit<*mut T>> = vec![std::mem::MaybeUninit::uninit(); indices2.len()];
     let ptr = slice.as_mut_ptr();
     unsafe {
-        for (i, index) in indices1.iter().enumerate() {
-            vector1[i].write(ptr.add(*index));
+        let mut array: [std::mem::MaybeUninit<Vec<*mut T>>; N] =
+        std::mem::MaybeUninit::uninit().assume_init();
+        for (i, indice) in indices.iter().enumerate() {
+            let mut out_vec = Vec::with_capacity(indice.len());
+            for index in *indice {
+                out_vec.push(ptr.add(*index));
+            }
+            array[i].write(out_vec);
         }
-        let result1 = std::mem::transmute::<_, Vec<&'a mut T>>(vector1);
-        for (i, index) in indices2.iter().enumerate() {
-            vector2[i].write(ptr.add(*index));
-        }
-        let result2 = std::mem::transmute::<_, Vec<&'a mut T>>(vector2);
-        (result1, result2)
+        assert!(
+            std::mem::size_of::<[std::mem::MaybeUninit<Vec<*mut T>>; N]>()
+                == std::mem::size_of::<[Vec<&'a mut T>; N]>()
+        );
+        std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(&array)
     }
 }
 
@@ -112,7 +119,10 @@ pub fn indices_array<'a, T, const N: usize>(
         for (i, index) in indices.iter().enumerate() {
             array[i].write(ptr.add(*index));
         }
-        assert!(std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>() == std::mem::size_of::<[&'a mut T; N]>());
+        assert!(
+            std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>()
+                == std::mem::size_of::<[&'a mut T; N]>()
+        );
         std::mem::transmute_copy::<[std::mem::MaybeUninit<*mut T>; N], [&'a mut T; N]>(&array)
     }
 }
@@ -254,7 +264,9 @@ pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indices_array, indices_slice, indices_slice2, TryIndicesError, TryIndicesOrderedError};
+    use crate::{
+        indices_array, indices_slice, indices_slices, TryIndicesError, TryIndicesOrderedError,
+    };
 
     #[test]
     fn indices_slice_works() {
@@ -588,7 +600,7 @@ mod tests {
     fn indices_slice2_works() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (mut one, mut two) = indices_slice2(slice, &[1, 3], &[4, 2]);
+        let [mut one, mut two] = indices_slices(slice, [&[1, 3], &[4, 2]]);
         assert_eq!(one, [&mut 4, &mut 2]);
         assert_eq!(two, [&mut 1, &mut 3]);
         *one[0] = 10;
@@ -600,7 +612,7 @@ mod tests {
     fn indices_slice2_more_than_two_indices() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (one, two) = indices_slice2(slice, &mut [3, 1, 2], &mut [0]);
+        let [one, two] = indices_slices(slice, [&mut [3, 1, 2], &mut [0]]);
         assert_eq!(one[0], &mut 2);
         assert_eq!(one[1], &mut 4);
         assert_eq!(one[2], &mut 3);
@@ -614,7 +626,7 @@ mod tests {
     fn indices_slice2_duplicate_indices() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (_one, _two) = indices_slice2(slice, &mut [3, 3], &[1,2]);
+        let [_one, _two] = indices_slices(slice, [&mut [3, 3], &[1, 2]]);
     }
 
     #[should_panic]
@@ -622,7 +634,7 @@ mod tests {
     fn indices_slice2_duplicate_indices_different_slice() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (_one, _two) = indices_slice2(slice, &mut [3, 1], &mut [2,3]);
+        let [_one, _two] = indices_slices(slice, [&mut [3, 1], &mut [2, 3]]);
     }
 
     #[should_panic]
@@ -630,7 +642,7 @@ mod tests {
     fn indices_slice2_out_of_bounds() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (_one, _two) = indices_slice2(slice, &mut [3, 5], &mut [1, 0]);
+        let [_one, _two] = indices_slices(slice, [&mut [3, 5], &mut [1, 0]]);
     }
 }
 
@@ -680,7 +692,7 @@ mod example_tests {
     }
 
     #[test]
-    fn graph_example(){
+    fn graph_example() {
         struct Node {
             index: usize,
             edges: Vec<usize>,
@@ -688,18 +700,39 @@ mod example_tests {
         }
 
         let mut graph = vec![
-            Node { index: 0, edges: vec![1, 2], message: String::new() },
-            Node { index: 1, edges: vec![0, 2], message: String::new() },
-            Node { index: 2, edges: vec![3], message: String::new() },
-            Node { index: 3, edges: vec![1], message: String::new() },
+            Node {
+                index: 0,
+                edges: vec![1, 2],
+                message: String::new(),
+            },
+            Node {
+                index: 1,
+                edges: vec![0, 2],
+                message: String::new(),
+            },
+            Node {
+                index: 2,
+                edges: vec![3],
+                message: String::new(),
+            },
+            Node {
+                index: 3,
+                edges: vec![1],
+                message: String::new(),
+            },
         ];
 
         fn traverse_graph(graph: &mut [Node], current: usize, start: usize) -> bool {
-            if current == start { return true; }
+            if current == start {
+                return true;
+            }
             let edges = graph[current].edges.clone();
             let mut edge_nodes = indices_slice(graph, &edges);
             for edge_node in edge_nodes.iter_mut() {
-                edge_node.message.push_str(&format!("At Node `{}` Came from Node `{}`.", edge_node.index, current));
+                edge_node.message.push_str(&format!(
+                    "At Node `{}` Came from Node `{}`.",
+                    edge_node.index, current
+                ));
             }
             for edge in edges {
                 if traverse_graph(graph, edge, start) {
@@ -713,7 +746,7 @@ mod example_tests {
             "At Node `0` Came from Node `1`.",
             "At Node `1` Came from Node `3`.",
             "At Node `2` Came from Node `1`.",
-            "At Node `3` Came from Node `2`."
+            "At Node `3` Came from Node `2`.",
         ];
         for (index, node) in graph.iter().enumerate() {
             assert_eq!(&node.message, answers[index]);
