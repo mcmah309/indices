@@ -648,7 +648,7 @@ mod tests {
 
 #[cfg(test)]
 mod example_tests {
-    use crate::indices_slice;
+    use crate::{indices_slices};
 
     #[test]
     fn example1() {
@@ -695,6 +695,7 @@ mod example_tests {
     fn graph_example() {
         struct Node {
             index: usize,
+            visted: usize,
             edges: Vec<usize>,
             message: String,
         }
@@ -702,21 +703,25 @@ mod example_tests {
         let mut graph = vec![
             Node {
                 index: 0,
+                visted: usize::MAX,
                 edges: vec![1, 2],
                 message: String::new(),
             },
             Node {
                 index: 1,
+                visted: usize::MAX,
                 edges: vec![0, 2],
                 message: String::new(),
             },
             Node {
                 index: 2,
+                visted: usize::MAX,
                 edges: vec![3],
                 message: String::new(),
             },
             Node {
-                index: 3,
+                index: 4,
+                visted: usize::MAX,
                 edges: vec![1],
                 message: String::new(),
             },
@@ -727,11 +732,12 @@ mod example_tests {
                 return true;
             }
             let edges = graph[current].edges.clone();
-            let mut edge_nodes = indices_slice(graph, &edges);
+            let [mut current_node, mut edge_nodes] = indices_slices(graph, [&[current], &edges]);
             for edge_node in edge_nodes.iter_mut() {
+                current_node[0].visted = current;
                 edge_node.message.push_str(&format!(
-                    "At Node `{}` Came from Node `{}`.",
-                    edge_node.index, current
+                    "This is Node `{}` Came from Node `{}`.",
+                    edge_node.index, current_node[0].visted
                 ));
             }
             for edge in edges {
@@ -743,10 +749,10 @@ mod example_tests {
         }
         traverse_graph(&mut *graph, 2, 0);
         let answers = [
-            "At Node `0` Came from Node `1`.",
-            "At Node `1` Came from Node `3`.",
-            "At Node `2` Came from Node `1`.",
-            "At Node `3` Came from Node `2`.",
+            "This is Node `0` Came from Node `1`.",
+            "This is Node `1` Came from Node `3`.",
+            "This is Node `2` Came from Node `1`.",
+            "This is Node `4` Came from Node `2`.",
         ];
         for (index, node) in graph.iter().enumerate() {
             assert_eq!(&node.message, answers[index]);
