@@ -648,7 +648,7 @@ mod tests {
 
 #[cfg(test)]
 mod example_tests {
-    use crate::{indices_slices};
+    use crate::indices_slices;
 
     #[test]
     fn example1() {
