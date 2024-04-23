@@ -65,22 +65,10 @@ pub fn indices_slices<'a, T, const N: usize>(
         if indices_length != 0 {
             panic!("Requested indices but slice is empty.")
         }
-        unsafe {
-            let array: [std::mem::MaybeUninit<Vec<*mut T>>; N] =
-                std::mem::MaybeUninit::uninit().assume_init();
-            return std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(
-                &array,
-            );
-        };
+        return unsafe { std::mem::zeroed() };
     }
     if indices_length == 0 {
-        unsafe {
-            let array: [std::mem::MaybeUninit<Vec<*mut T>>; N] =
-                std::mem::MaybeUninit::uninit().assume_init();
-            return std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(
-                &array,
-            );
-        };
+        return unsafe { std::mem::zeroed() };
     }
     insertion_sort(&mut check);
     let indices_len_minus_one = indices_length - 1;
@@ -126,28 +114,20 @@ pub fn indices_array<'a, T, const N: usize>(
     slice: &'a mut [T],
     indices: &[usize; N],
 ) -> [&'a mut T; N] {
+    assert!(
+        std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>()
+            == std::mem::size_of::<[&'a mut T; N]>()
+    );
     let slice_length = slice.len();
     let indices_length = N;
     if slice_length == 0 {
         if indices_length != 0 {
             panic!("Requested indices but slice is empty.")
         }
-        unsafe {
-            let array: [std::mem::MaybeUninit<*mut T>; N] =
-                std::mem::MaybeUninit::uninit().assume_init();
-            return std::mem::transmute_copy::<[std::mem::MaybeUninit<*mut T>; N], [&'a mut T; N]>(
-                &array,
-            );
-        };
+        return unsafe { std::mem::zeroed() };
     }
     if indices_length == 0 {
-        unsafe {
-            let array: [std::mem::MaybeUninit<*mut T>; N] =
-                std::mem::MaybeUninit::uninit().assume_init();
-            return std::mem::transmute_copy::<[std::mem::MaybeUninit<*mut T>; N], [&'a mut T; N]>(
-                &array,
-            );
-        };
+        return unsafe { std::mem::zeroed() };
     }
     let mut check: Vec<usize> = indices.to_vec();
     insertion_sort(&mut check);
@@ -176,10 +156,6 @@ pub fn indices_array<'a, T, const N: usize>(
         for (i, index) in indices.iter().enumerate() {
             array[i].write(ptr.add(*index));
         }
-        assert!(
-            std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>()
-                == std::mem::size_of::<[&'a mut T; N]>()
-        );
         std::mem::transmute_copy::<[std::mem::MaybeUninit<*mut T>; N], [&'a mut T; N]>(&array)
     }
 }
