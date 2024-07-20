@@ -1,6 +1,6 @@
 [package]
 name = "indices"
-description = "Indices provides macros and methods for safely retrieving multiple mutable indices from a mutable slice, addressing scenarios where slice elements would typically require `RefCell` or `Cell`."
+description = "Indices provides macros and methods for safely retrieving multiple mutable elements from a mutable slice, addressing scenarios where slice elements would typically require `RefCell` or `Cell` (interior mutability approach)."
 version = "0.3.4"
 edition = "2021"
 license = "Apache-2.0"
