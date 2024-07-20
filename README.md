@@ -10,27 +10,27 @@ addressing scenarios where slice elements would typically require `RefCell` or `
 
 e.g.
 ```rust
-let (two, four, three) = indices!(slice, 2, 4, 3);
+let (four, one, two) = indices!(slice, 4, 1, 2);
 ```
 Which expands to
 ```rust
-if 3 == 1 || 3 == 2 || 1 == 2 {
+if 4 == 1 || 4 == 2 || 1 == 2 {
     panic!("Duplicate indices are not allowed.");
 }
 let slice_len = slice.len();
-if 3 >= slice_len || 1 >= slice_len || 2 >= slice_len {
+if 4 >= slice_len || 1 >= slice_len || 2 >= slice_len {
     panic!("Index out of bounds.");
 }
 let ptr = slice.as_mut_ptr();
-let (two, four, three) = unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
+let (four, one, two) = unsafe { (&mut *ptr.add(4), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
 Which will be optimized by the rust compiler to essentially
 ```rust
-if 3 >= slice.len() {
+if 4 >= slice.len() {
     panic!("Index out of bounds.");
 }
 let ptr = slice.as_mut_ptr();
-let (two, four, three) = unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
+let (four, one, two) = unsafe { (&mut *ptr.add(4), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
 `indices!` is optimized, as above, for up to 4 requested indices. At which point equality comparison
 will switch to more optimized implementation for more than 4 requested indices.
