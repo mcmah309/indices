@@ -40,7 +40,7 @@ There is also `try_indices`, `indices_ordered!`, and `try_indices_ordered!`.
 ### Examples
 <details>
 
-    <summary>Macro Example<summary/>
+    <summary>Macro Example</summary>
 
 All macros are zero allocation and allow retrieving a variable number of indices at runtime. Prefer macros when the number
 of indices are known at compile time. e.g.
@@ -75,7 +75,7 @@ fn main() {
 
 <details>
 
-    <summary>Method Example<summary/>
+    <summary>Method Example</summary>
 
 Methods allow for more dynamic runtime retrieval when the number of indices is unknown at compile time. e.g.
 ```rust
