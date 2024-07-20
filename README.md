@@ -5,12 +5,43 @@
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-indices-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/indices)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/mcmah309/indices/rust.yml?branch=master&style=for-the-badge" height="20">](https://github.com/mcmah309/indices/actions?query=branch%3Amaster)
 
-Zero allocation macros and methods for retrieving multiple mutable indices from a mutable slice safely. 
+Indices provides macros and methods for retrieving multiple mutable indices from a mutable slice safely
+with no undefined behavior. Which also solves a lot of situations where you would otherwise need slice elements to be `Rc` or `Cell`.
+
 e.g.
 ```rust
 let (two, four, three) = indices!(slice, 2, 4, 3);
 ```
-## Macros
+Which expands to
+```rust
+if 3 == 1 || 3 == 2 || 1 == 2 {
+    panic!("Duplicate indices are not allowed.");
+}
+let slice_len = slice.len();
+if 3 >= slice_len || 1 >= slice_len || 2 >= slice_len {
+    panic!("Index out of bounds.");
+}
+let ptr = slice.as_mut_ptr();
+unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
+```
+Which will be optimized by the rust compiler to essentially
+```rust
+if 3 >= slice.len() {
+    panic!("Index out of bounds.");
+}
+let ptr = slice.as_mut_ptr();
+unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
+```
+`indices!` is optimized as the above for up to 4 request indices. At which point equality comparison
+will switch to more optimized implementation for more than 4 requested indices.
+
+There is also `try_indices`, `indices_ordered!`, and `try_indices_ordered!`.
+
+### Examples
+<details>
+
+<summary>Macro Example<summary/>
+
 All macros are zero allocation and allow retrieving a variable number of indices at runtime. Prefer macros when the number
 of indices are known at compile time. e.g.
 ```rust
@@ -40,7 +71,12 @@ fn main() {
 }
 ```
 
-## Methods
+</details>
+
+<details>
+
+<summary>Method Example<summary/>
+
 Methods allow for more dynamic runtime retrieval when the number of indices is unknown at compile time. e.g.
 ```rust
 fn main() {
@@ -110,3 +146,5 @@ fn main() {
     }
 }
 ```
+
+</details>
