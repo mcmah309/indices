@@ -1,10 +1,26 @@
 [package]
 name = "indices"
 description = "Indices provides macros and methods for safely retrieving multiple mutable indices from a mutable slice, addressing scenarios where slice elements would typically require `RefCell` or `Cell`."
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/mcmah309/indices"
+
+[package.metadata.crates-io]
+categories = [
+    "algorithms",
+    "data-structures",
+    "low-level",
+]
+keywords = [
+    "indices",
+    "macros",
+    "slices",
+    "mutable",
+    "performance",
+    "zero-allocation",
+    "data-structures",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
