@@ -22,7 +22,7 @@ if 3 >= slice_len || 1 >= slice_len || 2 >= slice_len {
     panic!("Index out of bounds.");
 }
 let ptr = slice.as_mut_ptr();
-unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
+let (two, four, three) = unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
 Which will be optimized by the rust compiler to essentially
 ```rust
@@ -30,7 +30,7 @@ if 3 >= slice.len() {
     panic!("Index out of bounds.");
 }
 let ptr = slice.as_mut_ptr();
-unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
+let (two, four, three) = unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
 `indices!` is optimized as the above for up to 4 request indices. At which point equality comparison
 will switch to more optimized implementation for more than 4 requested indices.
