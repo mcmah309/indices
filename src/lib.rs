@@ -182,7 +182,7 @@ macro_rules! indices {
             panic!("Index out of bounds.")
         }
         let ptr = slice.as_mut_ptr();
-        unsafe { 
+        unsafe {
             (&mut *ptr.add($index1), &mut *ptr.add($index2))
         }
     }};
@@ -197,7 +197,7 @@ macro_rules! indices {
             panic!("Index out of bounds.")
         }
         let ptr = slice.as_mut_ptr();
-        unsafe { 
+        unsafe {
             (&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3))
         }
     }};
@@ -212,7 +212,7 @@ macro_rules! indices {
             panic!("Index out of bounds.")
         }
         let ptr = slice.as_mut_ptr();
-        unsafe { 
+        unsafe {
             (&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3), &mut *ptr.add($index4))
         }
     }};
@@ -258,7 +258,7 @@ macro_rules! try_indices {
             return Err($crate::TryIndicesError::IndexOutOfBounds);
         }
         let ptr = slice.as_mut_ptr();
-        unsafe { 
+        unsafe {
             Ok((&mut *ptr.add($index1), &mut *ptr.add($index2)))
         }
     })()
@@ -275,7 +275,7 @@ macro_rules! try_indices {
             return Err($crate::TryIndicesError::IndexOutOfBounds);
         }
         let ptr = slice.as_mut_ptr();
-        unsafe { 
+        unsafe {
             Ok((&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3)))
         }
     })()
@@ -292,7 +292,7 @@ macro_rules! try_indices {
             return Err($crate::TryIndicesError::IndexOutOfBounds);
         }
         let ptr = slice.as_mut_ptr();
-        unsafe { 
+        unsafe {
             Ok((&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3), &mut *ptr.add($index4)))
         }
     })()
@@ -410,8 +410,6 @@ pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
 
 #[cfg(test)]
 mod tests {
-    use std::result;
-
     use crate::{
         indices_array, indices_slice, indices_slices, TryIndicesError, TryIndicesOrderedError,
     };
@@ -901,7 +899,6 @@ mod tests {
         let result = try_indices!(slice, 1, 2, 3, 4, 3);
         assert_eq!(result, Err(TryIndicesError::DuplicateIndex))
     }
-
 
     //************************************************************************//
 
