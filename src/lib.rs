@@ -172,6 +172,51 @@ pub fn indices_array<'a, T, const N: usize>(
 /// Panics if any index is out of bounds or duplicated.
 #[macro_export]
 macro_rules! indices {
+    ($slice:expr, $index1:expr, $index2:expr) => {{
+        let slice = $slice;
+        if $index1 == $index2 {
+            panic!("Duplicate indices are not allowed. Index `{}` was requested twice.", $index1)
+        }
+        let slice_len = slice.len();
+        if $index1 >= slice_len || $index2 >= slice_len {
+            panic!("Index out of bounds.")
+        }
+        let ptr = slice.as_mut_ptr();
+        unsafe { 
+            (&mut *ptr.add($index1), &mut *ptr.add($index2))
+        }
+    }};
+
+    ($slice:expr, $index1:expr, $index2:expr, $index3:expr) => {{
+        let slice = $slice;
+        if $index1 == $index2 || $index1 == $index3 || $index2 == $index3 {
+            panic!("Duplicate indices are not allowed.")
+        }
+        let slice_len = slice.len();
+        if $index1 >= slice_len || $index2 >= slice_len || $index3 >= slice_len {
+            panic!("Index out of bounds.")
+        }
+        let ptr = slice.as_mut_ptr();
+        unsafe { 
+            (&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3))
+        }
+    }};
+
+    ($slice:expr, $index1:expr, $index2:expr, $index3:expr, $index4:expr) => {{
+        let slice = $slice;
+        if $index1 == $index2 || $index1 == $index3 || $index1 == $index4 || $index2 == $index3 || $index2 == $index4 || $index3 == $index4 {
+            panic!("Duplicate indices are not allowed.")
+        }
+        let slice_len = slice.len();
+        if $index1 >= slice_len || $index2 >= slice_len || $index3 >= slice_len || $index4 >= slice_len {
+            panic!("Index out of bounds.")
+        }
+        let ptr = slice.as_mut_ptr();
+        unsafe { 
+            (&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3), &mut *ptr.add($index4))
+        }
+    }};
+
     ($slice:expr, $( $index:expr ),+) => {{
         let slice = $slice;
         if slice.is_empty() {
@@ -300,7 +345,6 @@ macro_rules! try_indices_ordered {
 
 //************************************************************************//
 
-#[inline(always)]
 pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
     for i in 1..s.len() {
         let mut j = i;
@@ -479,8 +523,34 @@ mod tests {
 
     //************************************************************************//
 
+    #[should_panic]
     #[test]
-    fn indices_works() {
+    fn indices_0() {
+        let mut data: [i32; 0] = [];
+        let slice = data.as_mut_slice();
+        let _result = indices!(slice, 3);
+    }
+
+    #[test]
+    fn indices_1() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (one,) = indices!(slice, 3);
+        assert_eq!(one, &mut 2);
+        *one = 10;
+        assert_eq!(data, [5, 4, 3, 10, 1]);
+    }
+
+    #[should_panic]
+    #[test]
+    fn indices_1_out_of_bounds() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (_one,) = indices!(slice, 5);
+    }
+
+    #[test]
+    fn indices_2() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
         let (one, two) = indices!(slice, 1, 3);
@@ -492,7 +562,7 @@ mod tests {
     }
 
     #[test]
-    fn indices_out_of_order() {
+    fn indices_2_out_of_order() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
         let (one, two) = indices!(slice, 3, 1);
@@ -503,8 +573,24 @@ mod tests {
         assert_eq!(data, [5, 20, 3, 10, 1]);
     }
 
+    #[should_panic]
     #[test]
-    fn indices_more_than_two_indices() {
+    fn indices_2_duplicate_indices() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (_one, _two) = indices!(slice, 3, 3);
+    }
+
+    #[should_panic]
+    #[test]
+    fn indices_2_out_of_bounds() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (_one, _two) = indices!(slice, 3, 5);
+    }
+
+    #[test]
+    fn indices_3() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
         let (one, two, three) = indices!(slice, 3, 1, 2);
@@ -519,26 +605,84 @@ mod tests {
 
     #[should_panic]
     #[test]
-    fn indices_duplicate_indices() {
+    fn indices_3_out_of_bounds() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (_one, _two) = indices!(slice, 3, 3);
+        let (_one, _two, _three) = indices!(slice, 1, 3, 5);
     }
 
     #[should_panic]
     #[test]
-    fn indices_out_of_bounds() {
+    fn indices_3_duplicate_indices() {
         let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let (_one, _two) = indices!(slice, 3, 5);
+        let (_one, _two, _three) = indices!(slice, 1, 3, 3);
+    }
+
+    #[test]
+    fn indices_4() {
+        let mut data = [5, 4, 3, 2, 1, 6];
+        let slice = data.as_mut_slice();
+        let (one, two, three, four) = indices!(slice, 0, 2, 4, 5);
+        assert_eq!(one, &mut 5);
+        assert_eq!(two, &mut 3);
+        assert_eq!(three, &mut 1);
+        assert_eq!(four, &mut 6);
+        *one = 10;
+        *two = 20;
+        *three = 30;
+        *four = 40;
+        assert_eq!(data, [10, 4, 20, 2, 30, 40]);
     }
 
     #[should_panic]
     #[test]
-    fn indices_empty_requested_indices() {
-        let mut data: [i32; 0] = [];
+    fn indices_4_out_of_bounds() {
+        let mut data = [5, 4, 3, 2, 1];
         let slice = data.as_mut_slice();
-        let _result = indices!(slice, 3);
+        let (_one, _two, _three, _four) = indices!(slice, 1, 3, 4, 5);
+    }
+
+    #[should_panic]
+    #[test]
+    fn indices_4_duplicate_indices() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (_one, _two, _three, _four) = indices!(slice, 1, 3, 4, 3);
+    }
+
+    #[test]
+    fn indices_5() {
+        let mut data = [5, 4, 3, 2, 1, 6];
+        let slice = data.as_mut_slice();
+        let (one, two, three, four, five) = indices!(slice, 0, 1, 2, 4, 5);
+        assert_eq!(one, &mut 5);
+        assert_eq!(two, &mut 4);
+        assert_eq!(three, &mut 3);
+        assert_eq!(four, &mut 1);
+        assert_eq!(five, &mut 6);
+        *one = 10;
+        *two = 20;
+        *three = 30;
+        *four = 40;
+        *five = 50;
+        assert_eq!(data, [10, 20, 30, 2, 40, 50]);
+    }
+
+    #[should_panic]
+    #[test]
+    fn indices_5_out_of_bounds() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (_one, _two, _three, _four, _five) = indices!(slice, 1, 2, 3, 4, 5);
+    }
+
+    #[should_panic]
+    #[test]
+    fn indices_5_duplicate_indices() {
+        let mut data = [5, 4, 3, 2, 1];
+        let slice = data.as_mut_slice();
+        let (_one, _two, _three, _four, _five) = indices!(slice, 1, 2, 3, 4, 3);
     }
 
     //************************************************************************//
