@@ -4,8 +4,8 @@ error: unexpected end of macro invocation
 6 |     let result = try_indices!(slice,);
   |                                     ^ missing tokens in macro arguments
   |
-note: while trying to match meta-variable `$index:expr`
+note: while trying to match meta-variable `$index1:expr`
  --> src/lib.rs
   |
-  |     ($slice:expr, $( $index:expr ),+) => {{
-  |                      ^^^^^^^^^^^
+  |     ($slice:expr, $index1:expr, $index2:expr) => {{
+  |                   ^^^^^^^^^^^^
