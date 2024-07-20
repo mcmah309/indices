@@ -5,8 +5,8 @@
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-indices-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/indices)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/mcmah309/indices/rust.yml?branch=master&style=for-the-badge" height="20">](https://github.com/mcmah309/indices/actions?query=branch%3Amaster)
 
-Indices provides macros and methods for retrieving multiple mutable indices from a mutable slice safely
-with no undefined behavior. Which also solves a lot of situations where you would otherwise need slice elements to be `Rc` or `Cell`.
+Indices provides macros and methods for safely retrieving multiple mutable indices from a mutable slice,
+addressing scenarios where slice elements would typically require `RefCell` or `Cell`.
 
 e.g.
 ```rust

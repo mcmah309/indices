@@ -1,7 +1,7 @@
 [package]
 name = "indices"
-description = "Zero allocation macros and methods for retrieving multiple mutable indices from a mutable slice safely"
-version = "0.3.1"
+description = "Indices provides macros and methods for safely retrieving multiple mutable indices from a mutable slice, addressing scenarios where slice elements would typically require `RefCell` or `Cell`."
+version = "0.3.2"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/mcmah309/indices"
