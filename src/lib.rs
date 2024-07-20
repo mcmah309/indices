@@ -46,25 +46,18 @@ pub fn indices_slice<'a, T>(slice: &'a mut [T], indices: &[usize]) -> Vec<&'a mu
     }
 }
 
-struct Inspect<T, const N: usize>(std::marker::PhantomData<T>);
-
-impl<T, const N: usize> Inspect<T, N> {
-    const IS_VALID: bool = {
-        assert!(
-            std::mem::size_of::<[std::mem::MaybeUninit<Vec<*mut T>>; N]>()
-                == std::mem::size_of::<[Vec<*mut T>; N]>()
-        );
-        true
-    };
-}
-
 /// Returns mutable references for the requested indices in the provided slices.
 /// Panics if any index is out of bounds or duplicate indices.
 pub fn indices_slices<'a, T, const N: usize>(
     slice: &'a mut [T],
     indices: [&[usize]; N],
 ) -> [Vec<&'a mut T>; N] {
-    assert!(Inspect::<T, N>::IS_VALID);
+    const {
+        assert!(
+            std::mem::size_of::<[std::mem::MaybeUninit<Vec<*mut T>>; N]>()
+                == std::mem::size_of::<[Vec<*mut T>; N]>()
+        );
+    }
     let slice_length = slice.len();
     let mut check: Vec<usize> = indices.concat();
     let indices_length = check.len();
@@ -120,10 +113,12 @@ pub fn indices_array<'a, T, const N: usize>(
     slice: &'a mut [T],
     indices: &[usize; N],
 ) -> [&'a mut T; N] {
-    assert!(
-        std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>()
-            == std::mem::size_of::<[&'a mut T; N]>()
-    );
+    const {
+        assert!(
+            std::mem::size_of::<[std::mem::MaybeUninit<*mut T>; N]>()
+                == std::mem::size_of::<[&'a mut T; N]>()
+        );
+    }
     let slice_length = slice.len();
     let indices_length = N;
     if slice_length == 0 {
