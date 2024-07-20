@@ -5,8 +5,8 @@
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-indices-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/indices)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/mcmah309/indices/rust.yml?branch=master&style=for-the-badge" height="20">](https://github.com/mcmah309/indices/actions?query=branch%3Amaster)
 
-Indices provides macros and methods for safely retrieving multiple mutable indices from a mutable slice,
-addressing scenarios where slice elements would typically require `RefCell` or `Cell`.
+Indices provides macros and methods for **safely** retrieving _multiple mutable_ indices from _a mutable_ slice,
+addressing scenarios where slice elements would typically require `RefCell` or `Cell` (interior mutability approach).
 
 e.g.
 ```rust
@@ -32,8 +32,8 @@ if 4 >= slice.len() {
 let ptr = slice.as_mut_ptr();
 let (four, one, two) = unsafe { (&mut *ptr.add(4), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
-`indices!` is optimized, as above, for up to 4 requested indices. At which point, equality comparison
-will switch to a more optimized implementation for more than 4 requested indices.
+The above code is safe, correct, and more performant than using `RefCell` or `Cell`. `indices!` is optimized, as above, for up to 4 requested indices.
+At which point, the macro will switch to a more optimized approach for many requested indices.
 
 There is also `try_indices`, `indices_ordered!`, and `try_indices_ordered!`.
 
