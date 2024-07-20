@@ -32,7 +32,7 @@ if 4 >= slice.len() {
 let ptr = slice.as_mut_ptr();
 let (four, one, two) = unsafe { (&mut *ptr.add(4), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
-The above code is safe, correct, and more performant than using `RefCell` or `Cell`. `indices!` is optimized, as above, for up to 4 requested indices.
+The above code is safe, correct, and more performant than using `RefCell` or `Cell`. `indices!` follows the above expansion pattern for up to 4 requested indices.
 At which point, the macro will switch to a more optimized approach for many requested indices.
 
 There is also `try_indices`, `indices_ordered!`, and `try_indices_ordered!`.
