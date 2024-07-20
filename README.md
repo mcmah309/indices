@@ -32,7 +32,7 @@ if 3 >= slice.len() {
 let ptr = slice.as_mut_ptr();
 let (two, four, three) = unsafe { (&mut *ptr.add(3), &mut *ptr.add(1), &mut *ptr.add(2)) }
 ```
-`indices!` is optimized as the above for up to 4 request indices. At which point equality comparison
+`indices!` is optimized, as above, for up to 4 requested indices. At which point equality comparison
 will switch to more optimized implementation for more than 4 requested indices.
 
 There is also `try_indices`, `indices_ordered!`, and `try_indices_ordered!`.
