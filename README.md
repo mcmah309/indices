@@ -82,7 +82,7 @@ Methods allow for more dynamic runtime retrieval when the number of indices is u
 fn main() {
     struct Node {
         index: usize,
-        visted: usize,
+        visited: usize,
         edges: Vec<usize>,
         message: String,
     }
@@ -90,25 +90,25 @@ fn main() {
     let mut graph = vec![
         Node {
             index: 0,
-            visted: usize::MAX,
+            visited: usize::MAX,
             edges: vec![1, 2],
             message: String::new(),
         },
         Node {
             index: 1,
-            visted: usize::MAX,
+            visited: usize::MAX,
             edges: vec![0, 2],
             message: String::new(),
         },
         Node {
             index: 2,
-            visted: usize::MAX,
+            visited: usize::MAX,
             edges: vec![3],
             message: String::new(),
         },
         Node {
             index: 4,
-            visted: usize::MAX,
+            visited: usize::MAX,
             edges: vec![1],
             message: String::new(),
         },
@@ -121,10 +121,10 @@ fn main() {
         let edges = graph[current].edges.clone();
         let [mut current_node, mut edge_nodes] = indices_slices(graph, [&[current], &edges]);
         for edge_node in edge_nodes.iter_mut() {
-            current_node[0].visted = current;
+            current_node[0].visited = current;
             edge_node.message.push_str(&format!(
                 "This is Node `{}` Came from Node `{}`.",
-                edge_node.index, current_node[0].visted
+                edge_node.index, current_node[0].visited
             ));
         }
         for edge in edges {
