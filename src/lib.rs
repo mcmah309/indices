@@ -422,36 +422,42 @@ macro_rules! indices_ordered {
 
 /// Returns mutable references for the requested indices.
 /// Slightly more efficient than `try_indices!` since assumes the requested indices are already ordered smallest to largest.
-/// Returns `TryOrderedIndicesError` if the requested indicies are not smallest to largest, or if any index is duplicated or out of bounds.
+/// Returns `TryOrderedIndicesError` if the requested indices are not smallest to largest, or if any index is duplicated or out of bounds.
 #[macro_export]
 macro_rules! try_indices_ordered {
-    ($slice:expr, $( $index:expr ),+) => {{
-        (|| {
-        let slice = $slice;
-        if slice.is_empty() {
-            return Err($crate::TryIndicesOrderedError::IndexOutOfBounds);
-        }
-        let indices = [$($index),*];
+    ($slice:expr, $index1:expr) => {{
+        $slice.get_mut($index1).map(|e| (e,)).ok_or($crate::TryIndicesOrderedError::IndexOutOfBounds)
+    }};
 
-        let indices_len_minus_one = indices.len() - 1;
-        let slice_len_minus_one = slice.len() - 1;
-        for i in 0..indices_len_minus_one {
-            if indices[i] > slice_len_minus_one {
+    ($slice:expr, $( $index:expr ),+) => {{
+        #[inline(always)]
+        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b [usize]) -> Result<($($crate::to_type!($index)),+), $crate::TryIndicesOrderedError> {
+            if slice.is_empty() {
                 return Err($crate::TryIndicesOrderedError::IndexOutOfBounds);
             }
-            if indices[i] >= indices[i + 1] {
-                return Err($crate::TryIndicesOrderedError::InvalidIndex);
-            }
-        }
-        if indices[indices_len_minus_one] > slice_len_minus_one {
-            return Err($crate::TryIndicesOrderedError::IndexOutOfBounds);
-        }
 
-        let ptr = slice.as_mut_ptr();
-        Ok((
-            $(unsafe { &mut *ptr.add($index) },)*
-        ))
-    })()
+            let indices_len_minus_one = indices.len() - 1;
+            let slice_len_minus_one = slice.len() - 1;
+
+            for i in 0..indices_len_minus_one {
+                if indices[i] > slice_len_minus_one {
+                    return Err($crate::TryIndicesOrderedError::IndexOutOfBounds);
+                }
+                if indices[i] >= indices[i + 1] {
+                    return Err($crate::TryIndicesOrderedError::InvalidIndex);
+                }
+            }
+            if indices[indices_len_minus_one] > slice_len_minus_one {
+                return Err($crate::TryIndicesOrderedError::IndexOutOfBounds);
+            }
+
+            let ptr = slice.as_mut_ptr();
+            Ok((
+                $(unsafe { &mut *ptr.add($index) },)*
+            ))
+        }
+        let indices = [$($index),*];
+        func($slice, &indices)
     }};
 }
 

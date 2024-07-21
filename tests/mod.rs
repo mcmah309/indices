@@ -34,6 +34,7 @@ pub mod should_not_compile_tests {
         t.compile_fail("tests/trybuild/indices/cannot_mutate_once_borrowed.rs");
         t.compile_fail("tests/trybuild/indices_ordered/cannot_mutate_once_borrowed.rs");
         t.compile_fail("tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs");
+        t.compile_fail("tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs");
     }
 
     #[test]
@@ -42,5 +43,6 @@ pub mod should_not_compile_tests {
         t.compile_fail("tests/trybuild/indices/cannot_return_local_data.rs");
         t.compile_fail("tests/trybuild/indices_ordered/cannot_return_local_data.rs");
         t.compile_fail("tests/trybuild/try_indices/cannot_return_local_data.rs");
+        t.compile_fail("tests/trybuild/try_indices_ordered/cannot_return_local_data.rs");
     }
 }
