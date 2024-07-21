@@ -22,3 +22,13 @@ jobs:
       run: cargo test --verbose
     - name: Run tests release
       run: cargo test --release --verbose
+
+    - name: Set up Rust (nightly) for Miri
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
+    - name: Install Miri
+      run: rustup component add miri
+    - name: Run tests with Miri
+      run: cargo miri test --lib
