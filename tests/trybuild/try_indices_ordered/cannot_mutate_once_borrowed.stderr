@@ -1,19 +1,99 @@
 error[E0503]: cannot use `slice` because it was mutably borrowed
- --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:6:5
-  |
-5 |     let (four, _one, _two) = try_indices_ordered!(&mut slice, 1, 2, 3).unwrap();
-  |                                                   ---------- `slice` is borrowed here
-6 |     slice[4] *= 2;
-  |     ^^^^^^^^ use of borrowed `slice`
-7 |     *four *= 2;
-  |     ---------- borrow later used here
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:14:5
+   |
+13 |     let (four,) = try_indices_ordered!(&mut slice, 4).unwrap();
+   |                                        ---------- `slice` is borrowed here
+14 |     slice[4] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+15 |     *four *= 2;
+   |     ---------- borrow later used here
 
 error[E0503]: cannot use `slice[_]` because it was mutably borrowed
- --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:6:5
-  |
-5 |     let (four, _one, _two) = try_indices_ordered!(&mut slice, 1, 2, 3).unwrap();
-  |                                                   ---------- `slice` is borrowed here
-6 |     slice[4] *= 2;
-  |     ^^^^^^^^^^^^^ use of borrowed `slice`
-7 |     *four *= 2;
-  |     ---------- borrow later used here
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:14:5
+   |
+13 |     let (four,) = try_indices_ordered!(&mut slice, 4).unwrap();
+   |                                        ---------- `slice` is borrowed here
+14 |     slice[4] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+15 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:24:5
+   |
+23 |     let (one, four) = try_indices_ordered!(&mut slice, 1, 4).unwrap();
+   |                                            ---------- `slice` is borrowed here
+24 |     slice[1] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+25 |     *one *= 2;
+   |     --------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:24:5
+   |
+23 |     let (one, four) = try_indices_ordered!(&mut slice, 1, 4).unwrap();
+   |                                            ---------- `slice` is borrowed here
+24 |     slice[1] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+25 |     *one *= 2;
+   |     --------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:34:5
+   |
+33 |     let (one, two, four) = try_indices_ordered!(&mut slice, 1, 2, 4).unwrap();
+   |                                                 ---------- `slice` is borrowed here
+34 |     slice[1] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+35 |     *one *= 2;
+   |     --------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:34:5
+   |
+33 |     let (one, two, four) = try_indices_ordered!(&mut slice, 1, 2, 4).unwrap();
+   |                                                 ---------- `slice` is borrowed here
+34 |     slice[1] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+35 |     *one *= 2;
+   |     --------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:44:5
+   |
+43 |     let (one, two, three, four) = try_indices_ordered!(&mut slice, 1, 2, 3, 4).unwrap();
+   |                                                        ---------- `slice` is borrowed here
+44 |     slice[1] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+45 |     *one *= 2;
+   |     --------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:44:5
+   |
+43 |     let (one, two, three, four) = try_indices_ordered!(&mut slice, 1, 2, 3, 4).unwrap();
+   |                                                        ---------- `slice` is borrowed here
+44 |     slice[1] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+45 |     *one *= 2;
+   |     --------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:54:5
+   |
+53 |     let (zero, one, two, three, four) = try_indices_ordered!(&mut slice, 0, 1, 2, 3, 4).unwrap();
+   |                                                              ---------- `slice` is borrowed here
+54 |     slice[0] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+55 |     *zero *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices_ordered/cannot_mutate_once_borrowed.rs:54:5
+   |
+53 |     let (zero, one, two, three, four) = try_indices_ordered!(&mut slice, 0, 1, 2, 3, 4).unwrap();
+   |                                                              ---------- `slice` is borrowed here
+54 |     slice[0] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+55 |     *zero *= 2;
+   |     ---------- borrow later used here

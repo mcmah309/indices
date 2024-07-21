@@ -1,19 +1,99 @@
 error[E0503]: cannot use `slice` because it was mutably borrowed
- --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:6:5
-  |
-5 |     let (four, _one, _two) = try_indices!(&mut slice, 4, 1, 2).unwrap();
-  |                                           ---------- `slice` is borrowed here
-6 |     slice[4] *= 2;
-  |     ^^^^^^^^ use of borrowed `slice`
-7 |     *four *= 2;
-  |     ---------- borrow later used here
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:14:5
+   |
+13 |     let (four,) = try_indices!(&mut slice, 4).unwrap();
+   |                                ---------- `slice` is borrowed here
+14 |     slice[4] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+15 |     *four *= 2;
+   |     ---------- borrow later used here
 
 error[E0503]: cannot use `slice[_]` because it was mutably borrowed
- --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:6:5
-  |
-5 |     let (four, _one, _two) = try_indices!(&mut slice, 4, 1, 2).unwrap();
-  |                                           ---------- `slice` is borrowed here
-6 |     slice[4] *= 2;
-  |     ^^^^^^^^^^^^^ use of borrowed `slice`
-7 |     *four *= 2;
-  |     ---------- borrow later used here
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:14:5
+   |
+13 |     let (four,) = try_indices!(&mut slice, 4).unwrap();
+   |                                ---------- `slice` is borrowed here
+14 |     slice[4] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+15 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:24:5
+   |
+23 |     let (four, one) = try_indices!(&mut slice, 4, 1).unwrap();
+   |                                    ---------- `slice` is borrowed here
+24 |     slice[4] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+25 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:24:5
+   |
+23 |     let (four, one) = try_indices!(&mut slice, 4, 1).unwrap();
+   |                                    ---------- `slice` is borrowed here
+24 |     slice[4] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+25 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:34:5
+   |
+33 |     let (four, _one, _two) = try_indices!(&mut slice, 4, 1, 2).unwrap();
+   |                                           ---------- `slice` is borrowed here
+34 |     slice[4] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+35 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:34:5
+   |
+33 |     let (four, _one, _two) = try_indices!(&mut slice, 4, 1, 2).unwrap();
+   |                                           ---------- `slice` is borrowed here
+34 |     slice[4] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+35 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:44:5
+   |
+43 |     let (four, one, two, three) = try_indices!(&mut slice, 4, 1, 2, 3).unwrap();
+   |                                                ---------- `slice` is borrowed here
+44 |     slice[4] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+45 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:44:5
+   |
+43 |     let (four, one, two, three) = try_indices!(&mut slice, 4, 1, 2, 3).unwrap();
+   |                                                ---------- `slice` is borrowed here
+44 |     slice[4] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+45 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:54:5
+   |
+53 |     let (four, one, two, three, zero) = try_indices!(&mut slice, 4, 1, 2, 3, 0).unwrap();
+   |                                                      ---------- `slice` is borrowed here
+54 |     slice[4] *= 2;
+   |     ^^^^^^^^ use of borrowed `slice`
+55 |     *four *= 2;
+   |     ---------- borrow later used here
+
+error[E0503]: cannot use `slice[_]` because it was mutably borrowed
+  --> tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs:54:5
+   |
+53 |     let (four, one, two, three, zero) = try_indices!(&mut slice, 4, 1, 2, 3, 0).unwrap();
+   |                                                      ---------- `slice` is borrowed here
+54 |     slice[4] *= 2;
+   |     ^^^^^^^^^^^^^ use of borrowed `slice`
+55 |     *four *= 2;
+   |     ---------- borrow later used here
