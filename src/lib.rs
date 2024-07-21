@@ -75,9 +75,10 @@ pub fn indices_slices<'a, T, const N: usize>(
                 let out_vec = Vec::with_capacity(0);
                 array[i].write(out_vec);
             }
-            return std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(
-                &array,
-            )
+            return std::mem::transmute_copy::<
+                [std::mem::MaybeUninit<Vec<*mut T>>; N],
+                [Vec<&'a mut T>; N],
+            >(&array);
         }
     }
     if all_requested_indices_length == 0 {
@@ -88,9 +89,10 @@ pub fn indices_slices<'a, T, const N: usize>(
                 let out_vec = Vec::with_capacity(0);
                 array[i].write(out_vec);
             }
-            return std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(
-                &array,
-            )
+            return std::mem::transmute_copy::<
+                [std::mem::MaybeUninit<Vec<*mut T>>; N],
+                [Vec<&'a mut T>; N],
+            >(&array);
         }
     }
     insertion_sort(&mut all_requested_indices);
