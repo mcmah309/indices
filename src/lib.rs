@@ -188,78 +188,102 @@ pub fn indices_array<'a, T, const N: usize>(
 
 //************************************************************************//
 
+macro_rules! to_type {
+    ( $t:expr ) => { &'a mut T };
+}
+
 /// Returns mutable references for the requested indices.
 /// Panics if any index is out of bounds or duplicated.
 #[macro_export]
 macro_rules! indices {
+    ($slice:expr, $index1:expr) => {{
+        (&mut $slice[$index1],)
+    }};
+
     ($slice:expr, $index1:expr, $index2:expr) => {{
-        let slice = $slice;
-        if $index1 == $index2 {
-            panic!("Duplicate indices are not allowed. Index `{}` was requested twice.", $index1)
+        #[inline(always)]
+        fn func<T>(slice: &mut [T], one: usize, two: usize) -> (&mut T, &mut T) {
+            if one == two {
+                panic!("Duplicate indices are not allowed. Index `{}` was requested twice.", one)
+            }
+            let slice_len = slice.len();
+            if one >= slice_len || two >= slice_len {
+                panic!("Index out of bounds.")
+            }
+            let ptr = slice.as_mut_ptr();
+            unsafe {
+                (&mut *ptr.add(one), &mut *ptr.add(two))
+            }
         }
-        let slice_len = slice.len();
-        if $index1 >= slice_len || $index2 >= slice_len {
-            panic!("Index out of bounds.")
-        }
-        let ptr = slice.as_mut_ptr();
-        unsafe {
-            (&mut *ptr.add($index1), &mut *ptr.add($index2))
-        }
+        func($slice, $index1, $index2)
     }};
 
     ($slice:expr, $index1:expr, $index2:expr, $index3:expr) => {{
-        let slice = $slice;
-        if $index1 == $index2 || $index1 == $index3 || $index2 == $index3 {
-            panic!("Duplicate indices are not allowed.")
+        #[inline(always)]
+        fn func<T>(slice: &mut [T], one: usize, two: usize, three: usize) -> (&mut T, &mut T, &mut T) {
+            if one == two || one == three || two == three {
+                panic!("Duplicate indices are not allowed.")
+            }
+            let slice_len = slice.len();
+            if one >= slice_len || two >= slice_len || three >= slice_len {
+                panic!("Index out of bounds.")
+            }
+            let ptr = slice.as_mut_ptr();
+            unsafe {
+                (&mut *ptr.add(one), &mut *ptr.add(two), &mut *ptr.add(three))
+            }
         }
-        let slice_len = slice.len();
-        if $index1 >= slice_len || $index2 >= slice_len || $index3 >= slice_len {
-            panic!("Index out of bounds.")
-        }
-        let ptr = slice.as_mut_ptr();
-        unsafe {
-            (&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3))
-        }
+        func($slice, $index1, $index2, $index3)
     }};
 
     ($slice:expr, $index1:expr, $index2:expr, $index3:expr, $index4:expr) => {{
-        let slice = $slice;
-        if $index1 == $index2 || $index1 == $index3 || $index1 == $index4 || $index2 == $index3 || $index2 == $index4 || $index3 == $index4 {
-            panic!("Duplicate indices are not allowed.")
+        #[inline(always)]
+        fn func<T>(slice: &mut [T], one: usize, two: usize, three: usize, four: usize) -> (&mut T, &mut T, &mut T, &mut T) {
+            if one == two || one == three || one == four || two == three || two == four || three == four {
+                panic!("Duplicate indices are not allowed.")
+            }
+            let slice_len = slice.len();
+            if one >= slice_len || two >= slice_len || three >= slice_len || four >= slice_len {
+                panic!("Index out of bounds.")
+            }
+            let ptr = slice.as_mut_ptr();
+            unsafe {
+                (&mut *ptr.add(one), &mut *ptr.add(two), &mut *ptr.add(three), &mut *ptr.add(four))
+            }
         }
-        let slice_len = slice.len();
-        if $index1 >= slice_len || $index2 >= slice_len || $index3 >= slice_len || $index4 >= slice_len {
-            panic!("Index out of bounds.")
-        }
-        let ptr = slice.as_mut_ptr();
-        unsafe {
-            (&mut *ptr.add($index1), &mut *ptr.add($index2), &mut *ptr.add($index3), &mut *ptr.add($index4))
-        }
+        func($slice, $index1, $index2, $index3, $index4)
     }};
 
     ($slice:expr, $( $index:expr ),+) => {{
-        let slice = $slice;
-        if slice.is_empty() {
-            panic!("Requested indices but slice is empty.")
-        }
-        let mut indices = [$($index),*];
-        $crate::insertion_sort(&mut indices);
-
-        let indices_len_minus_one = indices.len() - 1;
-        let slice_len_minus_one = slice.len() - 1;
-        for i in 0..indices_len_minus_one {
-            if indices[i] == indices[i + 1] {
-                panic!("Duplicate indices are not allowed. Index `{}` was requested twice.", indices[i])
+        #[inline(always)]
+        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b [usize]) -> ($(to_type!($index)),+) {
+            if slice.is_empty() {
+                panic!("Requested indices but slice is empty.")
             }
-        }
-        if indices[indices_len_minus_one] > slice_len_minus_one {
-            panic!("Index out of bounds. Requested index was `{}` while slice length was `{}`.", indices[indices_len_minus_one], slice_len_minus_one + 1)
-        }
+            let mut indices = indices.to_vec();
+            $crate::insertion_sort(&mut indices);
 
-        let ptr = slice.as_mut_ptr();
-        (
-            $(unsafe { &mut *ptr.add($index) },)*
-        )
+            let indices_len_minus_one = indices.len() - 1;
+            let slice_len_minus_one = slice.len() - 1;
+            for i in 0..indices_len_minus_one {
+                if indices[i] == indices[i + 1] {
+                    panic!("Duplicate indices are not allowed. Index `{}` was requested twice.", indices[i])
+                }
+            }
+            if indices[indices_len_minus_one] > slice_len_minus_one {
+                panic!(
+                    "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
+                    indices[indices_len_minus_one], slice_len_minus_one + 1
+                )
+            }
+
+            let ptr = slice.as_mut_ptr();
+            (
+                $(unsafe { &mut *ptr.add($index) },)*
+            )
+        }
+        let indices = [$($index),*];
+        func($slice, &indices)
     }};
 }
 
@@ -416,7 +440,7 @@ macro_rules! try_indices_ordered {
 
 //************************************************************************//
 
-pub fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
+fn insertion_sort<T: PartialOrd>(s: &mut [T]) {
     for i in 1..s.len() {
         let mut j = i;
         while j > 0 && s[j - 1] > s[j] {

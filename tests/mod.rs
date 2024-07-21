@@ -27,4 +27,16 @@ pub mod should_not_compile_tests {
         t.compile_fail("tests/trybuild/try_indices/needs_to_provide_indices.rs");
         t.compile_fail("tests/trybuild/try_indices_ordered/needs_to_provide_indices.rs");
     }
+
+    #[test]
+    fn cannot_mutate_once_borrowed() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/trybuild/indices/cannot_mutate_once_borrowed.rs");
+    }
+
+    #[test]
+    fn cannot_return_local_data() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/trybuild/indices/cannot_return_local_data.rs");
+    }
 }
