@@ -32,7 +32,7 @@ pub mod should_not_compile_tests {
     fn cannot_mutate_once_borrowed() {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/trybuild/indices/cannot_mutate_once_borrowed.rs");
-
+        t.compile_fail("tests/trybuild/indices_ordered/cannot_mutate_once_borrowed.rs");
         t.compile_fail("tests/trybuild/try_indices/cannot_mutate_once_borrowed.rs");
     }
 
@@ -40,7 +40,7 @@ pub mod should_not_compile_tests {
     fn cannot_return_local_data() {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/trybuild/indices/cannot_return_local_data.rs");
-
+        t.compile_fail("tests/trybuild/indices_ordered/cannot_return_local_data.rs");
         t.compile_fail("tests/trybuild/try_indices/cannot_return_local_data.rs");
     }
 }

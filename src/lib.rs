@@ -258,12 +258,11 @@ macro_rules! indices {
 
     ($slice:expr, $( $index:expr ),+) => {{
         #[inline(always)]
-        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b [usize]) -> ($(to_type!($index)),+) {
+        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b mut [usize]) -> ($($crate::to_type!($index)),+) {
             if slice.is_empty() {
                 panic!("Requested indices but slice is empty.")
             }
-            let mut indices = indices.to_vec();
-            $crate::insertion_sort(&mut indices);
+            $crate::insertion_sort(indices);
 
             let indices_len_minus_one = indices.len() - 1;
             let slice_len_minus_one = slice.len() - 1;
@@ -284,8 +283,8 @@ macro_rules! indices {
                 $(unsafe { &mut *ptr.add($index) },)*
             )
         }
-        let indices = [$($index),*];
-        func($slice, &indices)
+        let mut indices = [$($index),*];
+        func($slice, &mut indices)
     }};
 }
 
@@ -353,7 +352,7 @@ macro_rules! try_indices {
 
     ($slice:expr, $( $index:expr ),+) => {{
         #[inline(always)]
-        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b mut [usize]) -> Result<($(to_type!($index)),+), $crate::TryIndicesError> {
+        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b mut [usize]) -> Result<($($crate::to_type!($index)),+), $crate::TryIndicesError> {
             if slice.is_empty() {
                 return Err($crate::TryIndicesError::IndexOutOfBounds);
             }
@@ -382,34 +381,42 @@ macro_rules! try_indices {
 
 /// Returns mutable references for the requested indices
 /// Slightly more efficient than `indices!` since assumes the requested indices are already ordered smallest to largest.
-/// Panics if the requested indicies are not smallest to largest, or if any index is duplicated or out of bounds.
+/// Panics if the requested indices are not smallest to largest, or if any index is duplicated or out of bounds.
 #[macro_export]
 macro_rules! indices_ordered {
+    ($slice:expr, $index1:expr) => {{
+        (&mut $slice[$index1],)
+    }};
+
     ($slice:expr, $( $index:expr ),+) => {{
-        let slice = $slice;
-        if slice.is_empty() {
-            panic!("Requested indices but slice is empty.")
+        #[inline(always)]
+        fn func<'a, 'b, T>(slice: &'a mut [T], indices: &'b [usize]) -> ($($crate::to_type!($index)),+) {
+            if slice.is_empty() {
+                panic!("Requested indices but slice is empty.");
+            }
+
+            let indices_len_minus_one = indices.len() - 1;
+            let slice_len_minus_one = slice.len() - 1;
+
+            for i in 0..indices_len_minus_one {
+                if indices[i] > slice_len_minus_one {
+                    panic!("Index out of bounds. Requested index was `{}` while slice length was `{}`.", indices[i], slice_len_minus_one + 1);
+                }
+                if indices[i] >= indices[i + 1] {
+                    panic!("Indices not sorted or duplicate indices detected.");
+                }
+            }
+            if indices[indices_len_minus_one] > slice_len_minus_one {
+                panic!("Index out of bounds. Requested index was `{}` while slice length was `{}`.", indices[indices_len_minus_one], slice_len_minus_one + 1);
+            }
+
+            let ptr = slice.as_mut_ptr();
+            (
+                $(unsafe { &mut *ptr.add($index) },)*
+            )
         }
         let indices = [$($index),*];
-
-        let indices_len_minus_one = indices.len() - 1;
-        let slice_len_minus_one = slice.len() - 1;
-        for i in 0..indices_len_minus_one {
-            if indices[i] > slice_len_minus_one {
-                panic!("Index out of bounds. Requested index was `{}` while slice length was `{}`.", indices[i], slice_len_minus_one + 1)
-            }
-            if indices[i] >= indices[i + 1] {
-                panic!("Indices not sorted or duplicate indices detected.")
-            }
-        }
-        if indices[indices_len_minus_one] > slice_len_minus_one {
-            panic!("Index out of bounds. Requested index was `{}` while slice length was `{}`.", indices[indices_len_minus_one], slice_len_minus_one + 1)
-        }
-
-        let ptr = slice.as_mut_ptr();
-        (
-            $(unsafe { &mut *ptr.add($index) },)*
-        )
+        func($slice, &indices)
     }};
 }
 

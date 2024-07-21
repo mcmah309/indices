@@ -1,0 +1,8 @@
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/indices_ordered/cannot_return_local_data.rs:11:12
+   |
+9  |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+10 |     let (one, _two, _three) = indices_ordered!(slice, 1, 2, 3);
+11 |     return one
+   |            ^^^ returns a value referencing data owned by the current function
