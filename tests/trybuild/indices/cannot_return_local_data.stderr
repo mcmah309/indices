@@ -1,8 +1,44 @@
 error[E0515]: cannot return value referencing local variable `data`
-  --> tests/trybuild/indices/cannot_return_local_data.rs:11:12
+  --> tests/trybuild/indices/cannot_return_local_data.rs:15:5
    |
-9  |     let slice = data.as_mut_slice();
+13 |     let slice = data.as_mut_slice();
    |                 ---- `data` is borrowed here
-10 |     let (one, _two, _three) = indices!(slice, 1, 2, 3);
-11 |     return one
-   |            ^^^ returns a value referencing data owned by the current function
+14 |     let (four,) = indices!(slice, 4);
+15 |     four
+   |     ^^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/indices/cannot_return_local_data.rs:22:5
+   |
+20 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+21 |     let (one, four) = indices!(slice, 1, 4);
+22 |     (one, four)
+   |     ^^^^^^^^^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/indices/cannot_return_local_data.rs:29:5
+   |
+27 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+28 |     let (one, _two, _three) = indices!(slice, 1, 2, 3);
+29 |     one
+   |     ^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/indices/cannot_return_local_data.rs:36:5
+   |
+34 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+35 |     let (one, two, three, four) = indices!(slice, 1, 2, 3, 4);
+36 |     (one, two, three, four)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/indices/cannot_return_local_data.rs:43:5
+   |
+41 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+42 |     let (zero, one, two, three, four) = indices!(slice, 0, 1, 2, 3, 4);
+43 |     (zero, one, two, three, four)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function

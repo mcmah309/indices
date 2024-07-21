@@ -1,8 +1,58 @@
 error[E0515]: cannot return value referencing local variable `data`
-  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:11:12
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:15:5
    |
-9  |     let slice = data.as_mut_slice();
+13 |     let slice = data.as_mut_slice();
    |                 ---- `data` is borrowed here
-10 |     let (one, _two, _three) = try_indices_ordered!(slice, 1, 2, 3).unwrap();
-11 |     return one
-   |            ^^^ returns a value referencing data owned by the current function
+14 |     let (four,) = try_indices_ordered!(slice, 4)?;
+15 |     Ok(four)
+   |     ^^^^^^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:22:5
+   |
+20 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+21 |     let (one, four) = try_indices_ordered!(slice, 1, 4)?;
+22 |     Ok((one, four))
+   |     ^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function
+
+warning: unused variable: `two`
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:28:15
+   |
+28 |     let (one, two, four) = try_indices_ordered!(slice, 1, 2, 4)?;
+   |               ^^^ help: if this is intentional, prefix it with an underscore: `_two`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `four`
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:28:20
+   |
+28 |     let (one, two, four) = try_indices_ordered!(slice, 1, 2, 4)?;
+   |                    ^^^^ help: if this is intentional, prefix it with an underscore: `_four`
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:29:5
+   |
+27 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+28 |     let (one, two, four) = try_indices_ordered!(slice, 1, 2, 4)?;
+29 |     Ok(one)
+   |     ^^^^^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:36:5
+   |
+34 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+35 |     let (one, two, three, four) = try_indices_ordered!(slice, 1, 2, 3, 4)?;
+36 |     Ok((one, two, three, four))
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function
+
+error[E0515]: cannot return value referencing local variable `data`
+  --> tests/trybuild/try_indices_ordered/cannot_return_local_data.rs:43:5
+   |
+41 |     let slice = data.as_mut_slice();
+   |                 ---- `data` is borrowed here
+42 |     let (zero, one, two, three, four) = try_indices_ordered!(slice, 0, 1, 2, 3, 4)?;
+43 |     Ok((zero, one, two, three, four))
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function
