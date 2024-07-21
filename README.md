@@ -14,23 +14,26 @@ let (four, one, two) = indices!(slice, 4, 1, 2);
 ```
 Which expands to
 ```rust
-if 4 == 1 || 4 == 2 || 1 == 2 {
-    panic!("Duplicate indices are not allowed.");
+#[inline(always)]
+fn func<T>(slice: &mut [T], one: usize, two: usize, three: usize,) -> (&mut T, &mut T, &mut T) {
+    if one == two || one == three || two == three {
+        panic!("Duplicate indices are not allowed.");
+    }
+    let slice_len = slice.len();
+    if one >= slice_len || two >= slice_len || three >= slice_len {
+        panic!("Index out of bounds.");
+    }
+    let ptr = slice.as_mut_ptr();
+    unsafe { (&mut *ptr.add(one), &mut *ptr.add(two), &mut *ptr.add(three)) }
 }
-let slice_len = slice.len();
-if 4 >= slice_len || 1 >= slice_len || 2 >= slice_len {
-    panic!("Index out of bounds.");
-}
-let ptr = slice.as_mut_ptr();
-let (four, one, two) = unsafe { (&mut *ptr.add(4), &mut *ptr.add(1), &mut *ptr.add(2)) }
+let (four, one, two) = func(slice, 4, 1, 2);
 ```
-Which will be optimized by the rust compiler to essentially
+Which will be optimized by the rust compiler to essentially the following pseudo code
 ```rust
 if 4 >= slice.len() {
     panic!("Index out of bounds.");
 }
-let ptr = slice.as_mut_ptr();
-let (four, one, two) = unsafe { (&mut *ptr.add(4), &mut *ptr.add(1), &mut *ptr.add(2)) }
+let (four, one, two) = (&mut slice[4], &mut slice[1], &mut slice[2])
 ```
 The above code is safe, correct, and more performant than using `RefCell` or `Cell`. `indices!` follows the above expansion pattern for up to 4 requested indices.
 At which point, the macro will switch to a more optimized approach for many requested indices.
