@@ -804,6 +804,21 @@ mod tests {
         let (_one, _two, _three, _four, _five) = indices!(slice, 1, 2, 3, 4, 3);
     }
 
+    #[test]
+    fn indices_can_return_mut_from_scope() {
+        let mut data = [0, 1, 2, 3, 4];
+        let (two, four) = indices_scope_helper(&mut data);
+        *two = 200;
+        *four = 400;
+        assert_eq!(data[2], 200);
+        assert_eq!(data[4], 400);
+    }
+
+    fn indices_scope_helper(data: &mut [i32]) -> (&mut i32, &mut i32) {
+        let (two, four) = indices!(data, 2, 4);
+        (two, four)
+    }
+
     //************************************************************************//
 
     #[test]
@@ -968,6 +983,21 @@ mod tests {
         assert_eq!(result, Err(TryIndicesError::DuplicateIndex))
     }
 
+    #[test]
+    fn try_indices_can_return_mut_from_scope() {
+        let mut data = [0, 1, 2, 3, 4];
+        let (two, four) = try_indices_scope_helper(&mut data).unwrap();
+        *two = 200;
+        *four = 400;
+        assert_eq!(data[2], 200);
+        assert_eq!(data[4], 400);
+    }
+
+    fn try_indices_scope_helper(data: &mut [i32]) -> Result<(&mut i32, &mut i32), TryIndicesError> {
+        let (two, four) = try_indices!(data, 2, 4)?;
+        Ok((two, four))
+    }
+
     //************************************************************************//
 
     #[test]
@@ -1028,6 +1058,21 @@ mod tests {
         let _result = indices_ordered!(slice, 3);
     }
 
+    #[test]
+    fn indices_ordered_can_return_mut_from_scope() {
+        let mut data = [0, 1, 2, 3, 4];
+        let (two, four) = indices_ordered_scope_helper(&mut data);
+        *two = 200;
+        *four = 400;
+        assert_eq!(data[2], 200);
+        assert_eq!(data[4], 400);
+    }
+
+    fn indices_ordered_scope_helper(data: &mut [i32]) -> (&mut i32, &mut i32) {
+        let (two, four) = indices_ordered!(data, 2, 4);
+        (two, four)
+    }
+
     //************************************************************************//
 
     #[test]
@@ -1086,6 +1131,23 @@ mod tests {
         let slice = data.as_mut_slice();
         let result = try_indices_ordered!(slice, 3);
         assert_eq!(result, Err(TryIndicesOrderedError::IndexOutOfBounds))
+    }
+
+    #[test]
+    fn try_indices_ordered_can_return_mut_from_scope() {
+        let mut data = [0, 1, 2, 3, 4];
+        let (two, four) = try_indices_ordered_scope_helper(&mut data).unwrap();
+        *two = 200;
+        *four = 400;
+        assert_eq!(data[2], 200);
+        assert_eq!(data[4], 400);
+    }
+
+    fn try_indices_ordered_scope_helper(
+        data: &mut [i32],
+    ) -> Result<(&mut i32, &mut i32), TryIndicesOrderedError> {
+        let (two, four) = try_indices_ordered!(data, 2, 4)?;
+        Ok((two, four))
     }
 
     //************************************************************************//
