@@ -28,14 +28,14 @@ fn func<T>(slice: &mut [T], one: usize, two: usize, three: usize,) -> (&mut T, &
 }
 let (four, one, two) = func(slice, 4, 1, 2);
 ```
-Which will be optimized by the rust compiler to essentially the following <ins>pseudo</ins> code
+The above code is safe, correct, and more performant than using `RefCell` or `Cell`. It will be optimized by the rust compiler to essentially the following <ins>pseudo</ins> code
 ```rust
 if 4 >= slice.len() {
     panic!("Index out of bounds.");
 }
 let (four, one, two) = (slice.get_unchecked_mut(4), slice.get_unchecked_mut(1), slice.slice.get_unchecked_mut(2))
 ```
-The above code is safe, correct, and more performant than using `RefCell` or `Cell`. `indices!` follows the above expansion pattern for up to 4 requested indices.
+`indices!` follows the previous expansion pattern for up to 4 requested indices.
 At which point, the macro will switch to a more optimized approach for many requested indices.
 
 There is also `try_indices!`, `indices_ordered!`, and `try_indices_ordered!`.
