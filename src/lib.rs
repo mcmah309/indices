@@ -58,33 +58,56 @@ pub fn indices_slices<'a, T, const N: usize>(
                 == std::mem::size_of::<[Vec<*mut T>; N]>()
         );
     }
+    if N == 0 {
+        return unsafe { std::mem::zeroed() };
+    }
     let slice_length = slice.len();
-    let mut check: Vec<usize> = indices.concat();
-    let indices_length = check.len();
+    let mut all_requested_indices: Vec<usize> = indices.concat();
+    let all_requested_indices_length = all_requested_indices.len();
     if slice_length == 0 {
-        if indices_length != 0 {
+        if all_requested_indices_length != 0 {
             panic!("Requested indices but slice is empty.")
         }
-        return unsafe { std::mem::zeroed() };
+        unsafe {
+            let mut array: [std::mem::MaybeUninit<Vec<*mut T>>; N] =
+                std::mem::MaybeUninit::uninit().assume_init();
+            for i in 0..N {
+                let out_vec = Vec::with_capacity(0);
+                array[i].write(out_vec);
+            }
+            return std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(
+                &array,
+            )
+        }
     }
-    if indices_length == 0 {
-        return unsafe { std::mem::zeroed() };
+    if all_requested_indices_length == 0 {
+        unsafe {
+            let mut array: [std::mem::MaybeUninit<Vec<*mut T>>; N] =
+                std::mem::MaybeUninit::uninit().assume_init();
+            for i in 0..N {
+                let out_vec = Vec::with_capacity(0);
+                array[i].write(out_vec);
+            }
+            return std::mem::transmute_copy::<[std::mem::MaybeUninit<Vec<*mut T>>; N], [Vec<&'a mut T>; N]>(
+                &array,
+            )
+        }
     }
-    insertion_sort(&mut check);
-    let indices_len_minus_one = indices_length - 1;
+    insertion_sort(&mut all_requested_indices);
+    let indices_len_minus_one = all_requested_indices_length - 1;
     let slice_len_minus_one = slice_length - 1;
     for i in 0..indices_len_minus_one {
-        if check[i] == check[i + 1] {
+        if all_requested_indices[i] == all_requested_indices[i + 1] {
             panic!(
                 "Duplicate indices are not allowed. Index `{}` was requested twice.",
-                check[i]
+                all_requested_indices[i]
             );
         }
     }
-    if check[indices_len_minus_one] > slice_len_minus_one {
+    if all_requested_indices[indices_len_minus_one] > slice_len_minus_one {
         panic!(
             "Index out of bounds. Requested index was `{}` while slice length was `{}`.",
-            check[indices_len_minus_one],
+            all_requested_indices[indices_len_minus_one],
             slice_len_minus_one + 1
         );
     }
@@ -1066,30 +1089,55 @@ mod tests {
         let [_one, _two] = indices_slices(slice, [&mut [3, 5], &mut [1, 0]]);
     }
 
+    #[test]
+    fn indices_slices_data_not_empty_and_indices_requested_has_indices() {
+        let mut data: [i32; 1] = [1];
+        let slice = data.as_mut_slice();
+        let result = indices_slices(slice, [&mut [0]]);
+        assert_eq!(result.len(), 1);
+        assert_eq!(*result[0][0], 1)
+    }
+
     #[should_panic]
     #[test]
-    fn indices_slices_empty_requested_indices() {
+    fn indices_slices_data_empty_and_indices_requested_has_indices() {
         let mut data: [i32; 0] = [];
         let slice = data.as_mut_slice();
-        let _result = indices_slices(slice, [&mut [3]]);
+        let _result = indices_slices(slice, [&mut [0]]);
     }
 
     #[test]
-    fn indices_slices_empty_requested_empty() {
-        let mut data: [i32; 0] = [];
-        let slice = data.as_mut_slice();
-        let result = indices_slices(slice, [&mut []]);
-        assert_eq!(result.len(), 1);
-        assert!(result[0].is_empty())
-    }
-
-    #[test]
-    fn indices_slices_not_empty_slice_requested_empty() {
+    fn indices_slices_data_not_empty_and_indices_requested_has_no_indices() {
         let mut data: [i32; 1] = [1];
         let slice = data.as_mut_slice();
         let result = indices_slices(slice, [&mut []]);
         assert_eq!(result.len(), 1);
         assert!(result[0].is_empty())
+    }
+
+    #[test]
+    fn indices_slices_data_empty_and_indices_requested_has_no_indices() {
+        let mut data: [i32; 0] = [];
+        let slice = data.as_mut_slice();
+        let result = indices_slices(slice, [&mut []]);
+        assert_eq!(result.len(), 1);
+        assert!(result[0].is_empty())
+    }
+
+    #[test]
+    fn indices_slices_data_not_empty_and_indices_requested_empty() {
+        let mut data: [i32; 1] = [1];
+        let slice = data.as_mut_slice();
+        let result = indices_slices(slice, []);
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn indices_slices_data_empty_and_indices_requested_empty() {
+        let mut data: [i32; 0] = [];
+        let slice = data.as_mut_slice();
+        let result = indices_slices(slice, []);
+        assert_eq!(result.len(), 0);
     }
 }
 
