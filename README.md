@@ -33,7 +33,7 @@ The above code is safe, correct, and more performant than using `RefCell` or `Ce
 if 4 >= slice.len() {
     panic!("Index out of bounds.");
 }
-let (four, one, two) = (slice.get_unchecked_mut(4), slice.get_unchecked_mut(1), slice.slice.get_unchecked_mut(2))
+let (four, one, two) = (slice.get_unchecked_mut(4), slice.get_unchecked_mut(1), slice.get_unchecked_mut(2))
 ```
 `indices!` follows the previous expansion pattern for up to 4 requested indices.
 At which point, the macro will switch to a more optimized approach for many requested indices.
