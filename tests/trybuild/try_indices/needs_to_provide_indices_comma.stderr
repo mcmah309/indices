@@ -7,5 +7,5 @@ error: unexpected end of macro invocation
 note: while trying to match meta-variable `$index1:expr`
  --> src/lib.rs
   |
-  |     ($slice:expr, $index1:expr, $index2:expr) => {{
+  |     ($slice:expr, $index1:expr) => {{
   |                   ^^^^^^^^^^^^
